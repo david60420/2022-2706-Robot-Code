@@ -53,24 +53,6 @@ public class DriveBase2020 extends DriveBase {
 
         resetMotors();
         setTalonConfigurations();
-
-        //Current limiting for drivetrain master motors.
-        if (Config.MOTOR_CURRENT_LIMIT == true) {
-            leftMaster.configPeakCurrentLimit(Config.PEAK_CURRENT_AMPS);
-            leftMaster.configPeakCurrentDuration(Config.PEAK_TIME_MS);
-            leftMaster.configContinuousCurrentLimit(Config.CONTIN_CURRENT_AMPS);
-            rightMaster.configPeakCurrentLimit(Config.PEAK_CURRENT_AMPS);
-            rightMaster.configPeakCurrentDuration(Config.PEAK_TIME_MS);
-            rightMaster.configContinuousCurrentLimit(Config.CONTIN_CURRENT_AMPS);
-        } else { 
-            //If MOTOR_CURRENT_LIMIT is not true, remove talon current limits, just to be safe.
-            leftMaster.configPeakCurrentLimit(0);
-            leftMaster.configPeakCurrentDuration(0);
-            leftMaster.configContinuousCurrentLimit(0);
-            rightMaster.configPeakCurrentLimit(0);
-            rightMaster.configPeakCurrentDuration(0);
-            rightMaster.configContinuousCurrentLimit(0);
-        }
   
         setCoastMode();
 
@@ -147,11 +129,81 @@ public class DriveBase2020 extends DriveBase {
 
     private void setTalonConfigurations() {
         TalonSRXConfiguration talonConfig = new TalonSRXConfiguration(); 
+
+        // Put most settings for talon here
         talonConfig.neutralDeadband = Config.DRIVE_OPEN_LOOP_DEADBAND;
         
 
-        ErrorCode e1 = leftMaster.configAllSettings(talonConfig);
-        ErrorCode e2 = rightMaster.configAllSettings(talonConfig);
+        //Current limiting for drivetrain master motors.
+        if (Config.MOTOR_CURRENT_LIMIT == true) {
+            talonConfig.peakCurrentLimit = Config.PEAK_CURRENT_AMPS;
+            talonConfig.peakCurrentDuration = Config.PEAK_TIME_MS;
+            talonConfig.continuousCurrentLimit = Config.CONTIN_CURRENT_AMPS;
+        } else { 
+            //If MOTOR_CURRENT_LIMIT is not true, remove talon current limits, just to be safe.
+            talonConfig.peakCurrentLimit = 0;
+            talonConfig.peakCurrentDuration = 0;
+            talonConfig.continuousCurrentLimit = 0;
+        }
+        
+        // Config all talon settings - returns worst error
+        ErrorCode leftMasterError = leftMaster.configAllSettings(talonConfig);
+        ErrorCode rightMasterError = rightMaster.configAllSettings(talonConfig);
+
+        if (leftMasterError != null) 
+            logErrorCode(leftMasterError, "LeftMaster");
+        if (rightMasterError != null)
+            logErrorCode(rightMasterError, "RightMaster");
+
+        // Config the encoder and check if it worked
+        ErrorCode e1 = leftMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        ErrorCode e2 = rightMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        ErrorCode e3 = leftSlave.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        ErrorCode e4 = rightSlave.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        if (e1 != ErrorCode.OK || e2 != ErrorCode.OK || e3 != ErrorCode.OK || e4 != ErrorCode.OK)
+            this.state = DriveBaseState.Degraded;
+
+        // Set the motor inversions
+        leftMaster.setInverted(Config.LEFT_FRONT_INVERTED);
+        rightMaster.setInverted(Config.RIGHT_FRONT_INVERTED);
+        leftSlave.setInverted(Config.LEFT_REAR_INVERTED);
+        rightSlave.setInverted(Config.RIGHT_REAR_INVERTED);
+
+        // set the encoder inversions
+        leftMaster.setSensorPhase(Config.DRIVETRAIN_LEFT_SENSORPHASE);
+        rightMaster.setSensorPhase(Config.DRIVETRAIN_RIGHT_SENSORPHASE);
+    }
+
+    private void logErrorCode(ErrorCode e, String motorName) {
+        String[] errorCategories = new String[]{"CAN-Related", "UserSpecifiedGeneral", "Signal", "Gadgeteer Port Error Codes", 
+                    "Gadgeteer Module Error Codes", "API", "Higher Level", "CAN Related", "General", "Simulation"};
+        String errorCategory;
+        if (e.value >= -8 && e.value <= 10) 
+            errorCategory = errorCategories[0];
+        else if(e.value == -100) 
+            errorCategory = errorCategories[1];
+        else if(e.value == -200 || e.value == -201) 
+            errorCategory = errorCategories[2];
+        else if(e.value == -300 || e.value == -301)
+            errorCategory = errorCategories[3];
+        else if(e.value == -400 || e.value == -401 || e.value == -402)
+            errorCategory = errorCategories[4];
+        else if(e.value >= -505 && e.value <= -500)
+            errorCategory = errorCategories[5];
+        else if(e.value == -600 || e.value == -601)
+            errorCategory = errorCategories[6];
+        // skip errorCategories[7] b/c its included in errorCategories[0]
+        else if(e.value >= 100 && e.value <= 110)
+            errorCategory = errorCategories[8];
+        else if(e.value == 200 || e.value == 201 || e.value == 202)
+            errorCategory = errorCategories[9];
+        else
+            errorCategory = "Unknown Category";
+
+        String logString = String.format("%s - %s - %s", motorName, errorCategory, e.name());
+        // Log this string. For now println
+        System.out.println(logString);
+        
     }
 
     public void setCoastMode() {
