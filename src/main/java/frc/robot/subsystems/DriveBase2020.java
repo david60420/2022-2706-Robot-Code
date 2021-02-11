@@ -8,18 +8,13 @@ import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import com.ctre.phoenix.motorcontrol.can.TalonSRXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
-import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import frc.robot.config.Config;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.logging.Logger;
 
 public class DriveBase2020 extends DriveBase {
     WPI_TalonSRX leftMaster, rightMaster, climberTalon;
@@ -31,6 +26,9 @@ public class DriveBase2020 extends DriveBase {
     public double motorCurrent; //variable to display motor current levels
     public boolean motorLimitActive = false; //states if motor current is actively being limited
     
+    // Logging
+    private Logger logger = Logger.getLogger("DriveBase2020");
+
     public DriveBase2020() {
         leftMaster = new WPI_TalonSRX(Config.LEFT_FRONT_MOTOR);
         rightMaster = new WPI_TalonSRX(Config.RIGHT_FRONT_MOTOR);
@@ -61,6 +59,7 @@ public class DriveBase2020 extends DriveBase {
             pigeon.setFusedHeading(0d, Config.CAN_TIMEOUT_LONG);
         }
 
+        logger.addHandler(Config.logFileHandler);
 
     }
 
@@ -150,9 +149,9 @@ public class DriveBase2020 extends DriveBase {
         ErrorCode leftMasterError = leftMaster.configAllSettings(talonConfig);
         ErrorCode rightMasterError = rightMaster.configAllSettings(talonConfig);
 
-        if (leftMasterError != null) 
+        if (leftMasterError != ErrorCode.OK) 
             logErrorCode(leftMasterError, "LeftMaster");
-        if (rightMasterError != null)
+        if (rightMasterError != ErrorCode.OK)
             logErrorCode(rightMasterError, "RightMaster");
 
         // Config the encoder and check if it worked
@@ -175,6 +174,9 @@ public class DriveBase2020 extends DriveBase {
     }
 
     private void logErrorCode(ErrorCode e, String motorName) {
+        if (e.equals(ErrorCode.OK))
+            return;
+
         String[] errorCategories = new String[]{"CAN-Related", "UserSpecifiedGeneral", "Signal", "Gadgeteer Port Error Codes", 
                     "Gadgeteer Module Error Codes", "API", "Higher Level", "CAN Related", "General", "Simulation"};
         String errorCategory;
@@ -201,8 +203,9 @@ public class DriveBase2020 extends DriveBase {
             errorCategory = "Unknown Category";
 
         String logString = String.format("%s - %s - %s", motorName, errorCategory, e.name());
-        // Log this string. For now println
-        System.out.println(logString);
+
+        // Log the error code as severe
+        logger.severe("DRIVETRAIN TAlON ERROR - " + logString); 
         
     }
 
@@ -221,22 +224,11 @@ public class DriveBase2020 extends DriveBase {
     
     @Override
     protected void driveModeUpdated(DriveMode mode) {
-        this.stopMotors();
+        
         if (mode == DriveMode.OpenLoopVoltage) {
-            ErrorCode e1 = leftMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-            ErrorCode e2 = rightMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-            ErrorCode e3 = leftSlave.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-            ErrorCode e4 = rightSlave.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
             
-            if (e1 != ErrorCode.OK || e2 != ErrorCode.OK || e3 != ErrorCode.OK || e4 != ErrorCode.OK)
-                this.state = DriveBaseState.Degraded;
-                
-            leftMaster.configNeutralDeadband(Config.DRIVE_OPEN_LOOP_DEADBAND);
-            rightMaster.configNeutralDeadband(Config.DRIVE_OPEN_LOOP_DEADBAND);
-            leftSlave.configNeutralDeadband(Config.DRIVE_OPEN_LOOP_DEADBAND);
-            rightSlave.configNeutralDeadband(Config.DRIVE_OPEN_LOOP_DEADBAND);
         } else if (mode == DriveMode.Disabled) {
-            this.resetMotors();
+            stopMotors();
         }
     }
     
