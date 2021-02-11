@@ -83,6 +83,8 @@ public class Config {
     public static int SHOOTER_MOTOR = robotSpecific(5, 5, -1, -1, 16); //protobot is 16
     public static int CLIMBER_TALON = robotSpecific(10, 10, -1, -1, 16);
     public static int AGITATOR_MOTOR = robotSpecific(9, 9);
+    public static boolean LEFT_SLAVE_ISVICTOR = robotSpecific(true, true, true, false);
+    public static boolean RIGHT_SLAVE_ISVICTOR = robotSpecific(true, true, true, false);
 
     // Current limiter Constants
     public static int PEAK_CURRENT_AMPS = 80;           //Peak current threshold to trigger the current limit

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 public class DriveBase2020 extends DriveBase {
     WPI_TalonSRX leftMaster, rightMaster, climberTalon;
-    WPI_VictorSPX leftSlave, rightSlave;
+    BaseMotorController leftSlave, rightSlave;
 
     // DriveBase2020 is a singleton class as it represents a physical subsystem
     private static DriveBase2020 currentInstance;
@@ -34,8 +34,20 @@ public class DriveBase2020 extends DriveBase {
     public DriveBase2020() {
         leftMaster = new WPI_TalonSRX(Config.LEFT_FRONT_MOTOR);
         rightMaster = new WPI_TalonSRX(Config.RIGHT_FRONT_MOTOR);
-        leftSlave = new WPI_VictorSPX(Config.LEFT_REAR_MOTOR);
-        rightSlave = new WPI_VictorSPX(Config.RIGHT_REAR_MOTOR);
+
+        // Check whether to construct a victor or a talon
+        if (Config.LEFT_SLAVE_ISVICTOR) {
+            leftSlave = new WPI_VictorSPX(Config.LEFT_REAR_MOTOR);
+        } else {
+            leftSlave = new WPI_TalonSRX(Config.LEFT_REAR_MOTOR);
+        }
+        if (Config.RIGHT_SLAVE_ISVICTOR) {
+            rightSlave = new WPI_VictorSPX(Config.RIGHT_REAR_MOTOR);
+        } else {
+            rightSlave = new WPI_TalonSRX(Config.RIGHT_REAR_MOTOR);
+        }
+
+
         climberTalon = new WPI_TalonSRX(Config.CLIMBER_TALON);
         differentialDrive = new DifferentialDrive(leftMaster, rightMaster);
 
@@ -109,9 +121,10 @@ public class DriveBase2020 extends DriveBase {
     @Override
     public void stopMotors() {
         leftMaster.stopMotor();
-        leftSlave.stopMotor();
         rightMaster.stopMotor();
-        rightSlave.stopMotor();
+
+        leftSlave.neutralOutput();
+        rightSlave.neutralOutput();
     }
     
     @Override
