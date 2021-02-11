@@ -5,6 +5,7 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.IMotorController;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
+import com.ctre.phoenix.motorcontrol.can.TalonSRXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
@@ -37,6 +38,9 @@ public class DriveBase2020 extends DriveBase {
         rightSlave = new WPI_VictorSPX(Config.RIGHT_REAR_MOTOR);
         climberTalon = new WPI_TalonSRX(Config.CLIMBER_TALON);
         differentialDrive = new DifferentialDrive(leftMaster, rightMaster);
+
+        resetMotors();
+        setTalonConfigurations();
 
         //Current limiting for drivetrain master motors.
         if (Config.MOTOR_CURRENT_LIMIT == true) {
@@ -126,6 +130,15 @@ public class DriveBase2020 extends DriveBase {
 
 
         this.followMotors();
+    }
+
+    private void setTalonConfigurations() {
+        TalonSRXConfiguration talonConfig = new TalonSRXConfiguration(); 
+        talonConfig.neutralDeadband = Config.DRIVE_OPEN_LOOP_DEADBAND;
+        
+
+        ErrorCode e1 = leftMaster.configAllSettings(talonConfig);
+        ErrorCode e2 = rightMaster.configAllSettings(talonConfig);
     }
 
     public void setCoastMode() {
