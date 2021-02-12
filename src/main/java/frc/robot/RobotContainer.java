@@ -68,7 +68,9 @@ public class RobotContainer {
             analogSelectorOne = new AnalogSelector(Config.ANALOG_SELECTOR_ONE);
         }
 
-        ArmSubsystem armSubsystem = ArmSubsystem.getInstance();
+        ArmSubsystem armSubsystem;
+        if (Config.ARM_TALON != -1)
+            armSubsystem = ArmSubsystem.getInstance();
 
         configureButtonBindings();
     }

@@ -15,21 +15,25 @@ public class AgitatorSubsystem extends SubsystemBase {
 
     private AgitatorSubsystem() {
         //Defining the agitator motor
-        agitatorMotor = new VictorSPX(Config.AGITATOR_MOTOR);
+        if (Config.AGITATOR_MOTOR != -1)
+            agitatorMotor = new VictorSPX(Config.AGITATOR_MOTOR);
     }
 
     public void runAgitator() {
         // Runs the agitator at full speed
-        agitatorMotor.set(ControlMode.PercentOutput, AGITATOR_SPEED);
+        if (Config.AGITATOR_MOTOR != -1)
+            agitatorMotor.set(ControlMode.PercentOutput, AGITATOR_SPEED);
     }
 
     public void stopAgitator() {
         // Stops the agitator
-        agitatorMotor.set(ControlMode.PercentOutput, 0.0);
+        if (Config.AGITATOR_MOTOR != -1)
+            agitatorMotor.set(ControlMode.PercentOutput, 0.0);
     }
 
     public void reverseAgitator() {
         //Runs the agitator in reverse
-        agitatorMotor.set(ControlMode.PercentOutput, -AGITATOR_SPEED);
+        if (Config.AGITATOR_MOTOR != -1)
+            agitatorMotor.set(ControlMode.PercentOutput, -AGITATOR_SPEED);
     }
 }

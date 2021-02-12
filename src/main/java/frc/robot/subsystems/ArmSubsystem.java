@@ -108,13 +108,15 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         }
     }
 
-
     /**
-     * Return the singleton arm instance
+     * Return the singleton arm instance. Instantiates instance if not already done so.
      *
      * @return the Arm instance
      */
     public static ArmSubsystem getInstance() {
+        if (INSTANCE == null)
+            INSTANCE = new ArmSubsystem();
+        
         return INSTANCE;
     }
 
@@ -144,16 +146,18 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
 
         SmartDashboard.putNumber("Lower Limit", REVERSE_LIMIT_TICKS);
         SmartDashboard.putNumber("Upper Limit", FORWARD_LIMIT_TICKS);
-        SmartDashboard.putNumber("Arm Motor Ticks", armTalon.getSelectedSensorPosition());
+        if (Config.ARM_TALON != -1)
+            SmartDashboard.putNumber("Arm Motor Ticks", armTalon.getSelectedSensorPosition());
         //GABBY commented out
         //SmartDashboard.putNumber("Arm Angle", toDeg(armTalon.getSelectedSensorPosition()));
         SmartDashboard.putNumber("Desired Position", currentPosition);
 
 
         armTalon.set(ControlMode.Position, currentPosition);
-
-        if(armTalon.getSelectedSensorPosition() <= REVERSE_LIMIT_TICKS + 25) {
-            armTalon.set(0.0);
+        if (Config.ARM_TALON != 1) {
+            if(armTalon.getSelectedSensorPosition() <= REVERSE_LIMIT_TICKS + 25) {
+                armTalon.set(0.0);
+            }
         }
     }
 
@@ -162,7 +166,7 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
     }
 
     public boolean reachedPosition(int position) {
-        return Math.abs(armTalon.getSelectedSensorPosition() - position) < acceptableError;
+        return Math.abs(armTalon.getSelectedSensorPosition() - position) < acceptableError; 
     }
 
     /**

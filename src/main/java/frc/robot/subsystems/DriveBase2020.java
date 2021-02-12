@@ -45,8 +45,10 @@ public class DriveBase2020 extends DriveBase {
             rightSlave = new WPI_TalonSRX(Config.RIGHT_REAR_MOTOR);
         }
 
+        // Only construct the climber talon if its there
+        if (Config.CLIMBER_TALON != -1)
+            climberTalon = new WPI_TalonSRX(Config.CLIMBER_TALON);
 
-        climberTalon = new WPI_TalonSRX(Config.CLIMBER_TALON);
         differentialDrive = new DifferentialDrive(leftMaster, rightMaster);
 
         resetMotors();
@@ -55,7 +57,10 @@ public class DriveBase2020 extends DriveBase {
         setCoastMode();
 
         if (Config.PIGEON_ID != -1) {
-            pigeon = new PigeonIMU(new WPI_TalonSRX(Config.PIGEON_ID));
+            if (Config.PIGEON_ID == Config.LEFT_REAR_MOTOR) 
+                pigeon = new PigeonIMU((WPI_TalonSRX) leftSlave);
+            else
+                pigeon = new PigeonIMU(new WPI_TalonSRX(Config.PIGEON_ID));
             pigeon.setFusedHeading(0d, Config.CAN_TIMEOUT_LONG);
         }
 
@@ -149,18 +154,23 @@ public class DriveBase2020 extends DriveBase {
         ErrorCode leftMasterError = leftMaster.configAllSettings(talonConfig);
         ErrorCode rightMasterError = rightMaster.configAllSettings(talonConfig);
 
-        if (leftMasterError != ErrorCode.OK) 
+        if (!leftMasterError.equals(ErrorCode.OK)) 
             logErrorCode(leftMasterError, "LeftMaster");
-        if (rightMasterError != ErrorCode.OK)
+        if (!rightMasterError.equals(ErrorCode.OK))
             logErrorCode(rightMasterError, "RightMaster");
 
         // Config the encoder and check if it worked
         ErrorCode e1 = leftMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
         ErrorCode e2 = rightMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        ErrorCode e3 = leftSlave.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        ErrorCode e4 = rightSlave.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        if (e1 != ErrorCode.OK || e2 != ErrorCode.OK || e3 != ErrorCode.OK || e4 != ErrorCode.OK)
+        // ErrorCode e3 = leftSlave.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        // ErrorCode e4 = rightSlave.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+       
+        if (e1.value != 0 || e2.value != 0) {
             this.state = DriveBaseState.Degraded;
+            logger.severe("DRIVETRAIN ENCODER NOT WORKING - DRIVETRAIN DEGRADED - ONLY DRIVER CONTROLS ACTIVE");
+            logErrorCode(e1, "leftMaster");
+            logErrorCode(e2, "rightMaster");
+        }
 
         // Set the motor inversions
         leftMaster.setInverted(Config.LEFT_FRONT_INVERTED);
@@ -171,11 +181,17 @@ public class DriveBase2020 extends DriveBase {
         // set the encoder inversions
         leftMaster.setSensorPhase(Config.DRIVETRAIN_LEFT_SENSORPHASE);
         rightMaster.setSensorPhase(Config.DRIVETRAIN_RIGHT_SENSORPHASE);
+
+        leftMaster.setSelectedSensorPosition(0);
+        rightMaster.setSelectedSensorPosition(0);
+
     }
 
     private void logErrorCode(ErrorCode e, String motorName) {
-        if (e.equals(ErrorCode.OK))
+        if (e.equals(ErrorCode.OK)) {
+            System.out.println("error is ok on " + motorName);
             return;
+        }
 
         String[] errorCategories = new String[]{"CAN-Related", "UserSpecifiedGeneral", "Signal", "Gadgeteer Port Error Codes", 
                     "Gadgeteer Module Error Codes", "API", "Higher Level", "CAN Related", "General", "Simulation"};
@@ -231,5 +247,5 @@ public class DriveBase2020 extends DriveBase {
             stopMotors();
         }
     }
-    
+
 }

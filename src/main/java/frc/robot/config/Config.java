@@ -74,25 +74,25 @@ public class Config {
     // Static Constants
     private static Class<? extends DriveBase> Pre2020DriveBase = DriveBasePre2020.class.asSubclass(DriveBase.class);
     private static Class<? extends DriveBase> Post2020DriveBase = DriveBase2020.class.asSubclass(DriveBase.class);
-    public static Class<? extends DriveBase> DRIVEBASE_CLASS = robotSpecific(Post2020DriveBase, Post2020DriveBase, Pre2020DriveBase, Pre2020DriveBase, Pre2020DriveBase, Pre2020DriveBase, Pre2020DriveBase, Pre2020DriveBase, Pre2020DriveBase);
+    public static Class<? extends DriveBase> DRIVEBASE_CLASS = robotSpecific(Post2020DriveBase, Post2020DriveBase, Pre2020DriveBase, Post2020DriveBase, Pre2020DriveBase, Pre2020DriveBase, Pre2020DriveBase, Pre2020DriveBase, Pre2020DriveBase);
     public static int RIGHT_FRONT_MOTOR = robotSpecific(2, 2, 3, 2, 2);
     public static int RIGHT_REAR_MOTOR = robotSpecific(4, 4, 4, 4, 4);
     public static int LEFT_FRONT_MOTOR = robotSpecific(1, 1, 1, 1, 1);
     public static int LEFT_REAR_MOTOR = robotSpecific(3, 3, 2, 3, 3);
-    public static int INTAKE_MOTOR = robotSpecific(6, 6, -1, 6, -1);
+    public static int INTAKE_MOTOR = robotSpecific(6, 6, -1, -1, -1);
     public static int SHOOTER_MOTOR = robotSpecific(5, 5, -1, -1, 16); //protobot is 16
     public static int CLIMBER_TALON = robotSpecific(10, 10, -1, -1, 16);
-    public static int AGITATOR_MOTOR = robotSpecific(9, 9);
+    public static int AGITATOR_MOTOR = robotSpecific(9, 9, -1, -1);
 
     public static boolean LEFT_SLAVE_ISVICTOR = robotSpecific(true, true, true, false);
     public static boolean RIGHT_SLAVE_ISVICTOR = robotSpecific(true, true, true, false);
     
-    public static boolean LEFT_FRONT_INVERTED = robotSpecific(false, false, false, true);
-    public static boolean RIGHT_FRONT_INVERTED = robotSpecific(false, false, false, true);
-    public static boolean LEFT_REAR_INVERTED = robotSpecific(false, false, false, true);
-    public static boolean RIGHT_REAR_INVERTED = robotSpecific(false, false, false, true);
+    public static boolean LEFT_FRONT_INVERTED = robotSpecific(false, false, false, false);
+    public static boolean RIGHT_FRONT_INVERTED = robotSpecific(false, false, false, false);
+    public static boolean LEFT_REAR_INVERTED = robotSpecific(false, false, false, false);
+    public static boolean RIGHT_REAR_INVERTED = robotSpecific(false, false, false, false);
     public static boolean DRIVETRAIN_LEFT_SENSORPHASE = robotSpecific(false, false, false, true);
-    public static boolean DRIVETRAIN_RIGHT_SENSORPHASE = robotSpecific(false, false, false, true);
+    public static boolean DRIVETRAIN_RIGHT_SENSORPHASE = robotSpecific(false, false, false, false);
 
     // Current limiter Constants
     public static int PEAK_CURRENT_AMPS = 80;           //Peak current threshold to trigger the current limit
@@ -101,13 +101,13 @@ public class Config {
     public static boolean MOTOR_CURRENT_LIMIT = true;   //Enable or disable motor current limiting.
 
     public static int TALON_5_PLYBOY = robotSpecific(-1, -1, -1, -1, -1, 5);
-    public static int PIGEON_ID = robotSpecific(CLIMBER_TALON, CLIMBER_TALON, RIGHT_REAR_MOTOR, LEFT_FRONT_MOTOR, LEFT_REAR_MOTOR, TALON_5_PLYBOY);
+    public static int PIGEON_ID = robotSpecific(CLIMBER_TALON, CLIMBER_TALON, RIGHT_REAR_MOTOR, LEFT_REAR_MOTOR, LEFT_REAR_MOTOR, TALON_5_PLYBOY);
     
     public static int ANALOG_SELECTOR_ONE = robotSpecific(0, 0, -1, -1, -1, 0);
     
-    public static int ARM_TALON = robotSpecific(7, 7, 12);
+    public static int ARM_TALON = robotSpecific(7, 7, 12, -1);
 
-    public static int FEEDER_SUBSYSTEM_TALON = robotSpecific(8, 8);
+    public static int FEEDER_SUBSYSTEM_TALON = robotSpecific(8, 8, -1, -1);
     
     public static Double DRIVE_OPEN_LOOP_DEADBAND = 0.04;
     
