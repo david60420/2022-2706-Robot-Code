@@ -168,10 +168,11 @@ public class FeederSubsystem extends ConditionalSubsystemBase {
     }
 
     public void periodic() {
-        SmartDashboard.putNumber("Feeder encoder ticks", feederTalon.getSelectedSensorPosition());
-        SmartDashboard.putNumber("Feeder RPM", (feederTalon.getSelectedSensorPosition() * 600.0) / 4096);
+        if (Config.FEEDER_SUBSYSTEM_TALON != -1) {
+            SmartDashboard.putNumber("Feeder encoder ticks", feederTalon.getSelectedSensorPosition());
+            SmartDashboard.putNumber("Feeder RPM", (feederTalon.getSelectedSensorPosition() * 600.0) / 4096);
+        }
     }
-
     public void stopFeeder() {
         feederTalon.stopMotor();
     }

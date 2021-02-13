@@ -32,10 +32,9 @@ public class IntakeSubsystem extends ConditionalSubsystemBase {
         createCondition("dummyPlaceholder", SubsystemConditionStates.AUTO).setState(false);
         if (Config.INTAKE_MOTOR != -1) {
             intakeMotor = new TalonSRX(Config.INTAKE_MOTOR);
+            intakeMotor.setInverted(true);
         }
-
-        intakeMotor.setInverted(true);
-
+        
     }
 
     /**
