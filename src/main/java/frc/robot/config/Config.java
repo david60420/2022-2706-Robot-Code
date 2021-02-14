@@ -136,6 +136,11 @@ public class Config {
     // Timeouts for sending CAN bus commands
     public static final int CAN_TIMEOUT_SHORT = 10;
     public static final int CAN_TIMEOUT_LONG = 100;
+
+    public static final int TALON_PRIMARY_PID = 0;
+    public static final int TALTON_AUXILIARY_PID = 1;
+
+    public static final int DRIVETRAIN_SLOTID_DRIVER = 0;
     
     public static final boolean TELEOP_BRAKE = false;
     
@@ -179,6 +184,15 @@ public class Config {
     // Track width and kinematics
     public static double kTrackWidth; 
     public static DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackWidth);
+
+    // Ramsete/Talon P values
+    public static int DRIVETRAIN_SLOTID_RAMSETE = 1;
+    public static double RAMSETE_KF = 0;
+    public static double RAMSETE_KP; // Fill in from robot characterization
+    public static double RAMSETE_KI = 0;
+    public static double RAMSETE_KD = 0;
+    public static double RAMSETE_ALLOWABLE_PID_ERROR = 0; // <- never stop the P loop from running
+    public static double RAMSETE_VOLTAGE_COMPENSATION = 12;
 
     public static final FluidConstant<Integer> RPM = new FluidConstant<>("Shooter RPM", 1700)
             .registerToTable(Config.constantsTable);

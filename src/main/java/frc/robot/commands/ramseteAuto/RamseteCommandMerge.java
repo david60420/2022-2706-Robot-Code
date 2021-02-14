@@ -109,6 +109,8 @@ public class RamseteCommandMerge extends CommandBase {
 
         startLogging();
         targetPose = m_trajectory.sample(m_trajectory.getTotalTimeSeconds()).poseMeters;
+
+        m_driveSubsystem.setActivePIDSlot(Config.DRIVETRAIN_SLOTID_RAMSETE);
     }
 
     @Override
@@ -162,6 +164,7 @@ public class RamseteCommandMerge extends CommandBase {
     public void end(boolean interrupted) {
         m_timer.stop();
         stopLogging();
+        m_driveSubsystem.setActivePIDSlot(Config.DRIVETRAIN_SLOTID_DRIVER);
     }
 
     @Override

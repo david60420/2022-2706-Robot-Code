@@ -145,8 +145,17 @@ public class DriveBase2020 extends DriveBase {
 
         // Put most settings for talon here
         talonConfig.neutralDeadband = Config.DRIVE_OPEN_LOOP_DEADBAND;
-        
 
+        // Slot 1 belongs to Ramsete
+        talonConfig.slot1.kF = Config.RAMSETE_KF;
+        talonConfig.slot1.kP = Config.RAMSETE_KP;
+        talonConfig.slot1.kI = Config.RAMSETE_KI;
+        talonConfig.slot1.kD = Config.RAMSETE_KD;
+        talonConfig.slot1.allowableClosedloopError = Config.RAMSETE_ALLOWABLE_PID_ERROR;
+
+        talonConfig.voltageCompSaturation = Config.RAMSETE_VOLTAGE_COMPENSATION;
+
+        
         //Current limiting for drivetrain master motors.
         if (Config.MOTOR_CURRENT_LIMIT == true) {
             talonConfig.peakCurrentLimit = Config.PEAK_CURRENT_AMPS;
@@ -171,15 +180,17 @@ public class DriveBase2020 extends DriveBase {
         // Config the encoder and check if it worked
         ErrorCode e1 = leftMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
         ErrorCode e2 = rightMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        // ErrorCode e3 = leftSlave.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        // ErrorCode e4 = rightSlave.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-       
+        
         if (e1.value != 0 || e2.value != 0) {
             this.state = DriveBaseState.Degraded;
             logger.severe("DRIVETRAIN ENCODER NOT WORKING - DRIVETRAIN DEGRADED - ONLY DRIVER CONTROLS ACTIVE");
             logErrorCode(e1, "leftMaster");
             logErrorCode(e2, "rightMaster");
         }
+
+        // Turn on voltage compensation
+        leftMaster.enableVoltageCompensation(true);
+        rightMaster.enableVoltageCompensation(true);
 
         // Set the motor inversions
         leftMaster.setInverted(Config.LEFT_FRONT_INVERTED);
@@ -251,6 +262,7 @@ public class DriveBase2020 extends DriveBase {
     protected void driveModeUpdated(DriveMode mode) {
         
         if (mode == DriveMode.OpenLoopVoltage) {
+            setActivePIDSlot(Config.DRIVETRAIN_SLOTID_DRIVER);
             
         } else if (mode == DriveMode.Disabled) {
             stopMotors();
@@ -273,6 +285,12 @@ public class DriveBase2020 extends DriveBase {
         leftMaster.setSelectedSensorPosition(0);
         rightMaster.setSelectedSensorPosition(0);
         odometry.resetPosition(newPose, Rotation2d.fromDegrees(getCurrentAngle()));
+    }
+
+    @Override
+    public void setActivePIDSlot(int slotId) {
+        leftMaster.selectProfileSlot(slotId, Config.TALON_PRIMARY_PID);
+        rightMaster.selectProfileSlot(slotId, Config.TALON_PRIMARY_PID);
     }
 
     @Override
