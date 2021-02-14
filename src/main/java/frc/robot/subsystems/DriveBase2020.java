@@ -1,6 +1,8 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.ErrorCode;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.IMotorController;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -10,6 +12,9 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import frc.robot.config.Config;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -23,6 +28,8 @@ public class DriveBase2020 extends DriveBase {
     // DriveBase2020 is a singleton class as it represents a physical subsystem
     private static DriveBase2020 currentInstance;
 
+    private DifferentialDriveOdometry odometry; 
+
     public double motorCurrent; //variable to display motor current levels
     public boolean motorLimitActive = false; //states if motor current is actively being limited
     
@@ -32,6 +39,8 @@ public class DriveBase2020 extends DriveBase {
     public DriveBase2020() {
         leftMaster = new WPI_TalonSRX(Config.LEFT_FRONT_MOTOR);
         rightMaster = new WPI_TalonSRX(Config.RIGHT_FRONT_MOTOR);
+
+        odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(getCurrentAngle()));
 
         // Check whether to construct a victor or a talon
         if (Config.LEFT_SLAVE_ISVICTOR) {
@@ -248,4 +257,104 @@ public class DriveBase2020 extends DriveBase {
         }
     }
 
+    @Override
+    public void periodic() {
+        odometry.update(Rotation2d.fromDegrees(getCurrentAngle()), getLeftPosition(), getRightPosition());
+    }
+
+    @Override 
+    public Pose2d getPose() { 
+        return odometry.getPoseMeters();
+    }
+
+    @Override
+    public void resetPose(Pose2d newPose) {
+        pigeon.setFusedHeading(newPose.getRotation().getDegrees(), Config.CAN_TIMEOUT_LONG);
+        leftMaster.setSelectedSensorPosition(0);
+        rightMaster.setSelectedSensorPosition(0);
+        odometry.resetPosition(newPose, Rotation2d.fromDegrees(getCurrentAngle()));
+    }
+
+    @Override
+    public void tankDriveVelocities(double leftVel, double rightVel, double leftFF, double rightFF) {
+        leftMaster.set(ControlMode.Velocity, metersPerSecondToTalonVelocity(leftVel), 
+                DemandType.ArbitraryFeedForward, leftFF / 12.0);
+
+        rightMaster.set(ControlMode.Velocity, metersPerSecondToTalonVelocity(rightVel), 
+                DemandType.ArbitraryFeedForward, rightFF / 12.0); 
+    }
+
+    @Override
+    public double[] getMeasuredVelocities() {
+        double leftVel = leftMaster.getSelectedSensorVelocity();
+        double rightVel = rightMaster.getSelectedSensorVelocity();
+        return new double[]{leftVel, rightVel};
+    }
+
+    private double getLeftPosition() {
+        return talonPosistionToMeters(leftMaster.getSelectedSensorPosition());
+    }
+
+    private double getRightPosition() {
+        return talonPosistionToMeters(rightMaster.getSelectedSensorPosition());
+    }
+
+
+    /**
+     * Converting Talon ticks to meters
+     * 
+     * Unit Conversion Method
+     */
+    private double talonPositionToMeters(double talonPosisiton) {
+        double result = talonPosisiton;
+        double circumference = Math.PI * Config.drivetrainWheelDiameter;
+        double metersPerTick = circumference / Config.ticksPerRevolution;
+        result *= metersPerTick;
+        return result;
+    }
+
+    /**
+     * Converting m/s to talon ticks/100ms
+     * 
+     * Unit Conversion Method
+     */
+    private double metersPerSecondToTalonVelocity(double metersPerSecond) {
+        return metersToTalonPosistion(metersPerSecond * 0.1); // Converting meters per second to meters per 100ms
+    }
+
+    /**
+     * Converting meters to talon ticks
+     * 
+     * Unit Conversion Method
+     */
+    private double metersToTalonPosistion(double meters) {
+        double result = meters;
+        double circumference = Math.PI * Config.drivetrainWheelDiameter; // Pi*Diameter
+        double ticksPerMeter = Config.ticksPerRevolution / circumference; // Ticks per revolution / circumference
+        result = result * ticksPerMeter; // Meter * ticks in 1 meter
+        return result;
+    }
+
+    /**
+     * Converting Talon ticks to m/s
+     * 
+     * Unit Conversion Method
+     */
+    private double talonPosistionToMeters(double talonPosisiton) {
+        double result = talonPosisiton;
+        double circumference = Math.PI * Config.drivetrainWheelDiameter;
+        double metersPerTick = circumference / Config.ticksPerRevolution;
+        result *= metersPerTick;
+        return result;
+
+    }
+
+    /**
+     * Converting talon ticks/100ms to m/s
+     * 
+     * Unit Conversion Method
+     */
+    private double talonVelocityToMetersPerSecond(double talonVelocity) {
+        return talonPosistionToMeters(talonVelocity * 10); // Convert ticks/100ms to ticks/sec
+    }
 }

@@ -2,6 +2,7 @@ package frc.robot.config;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
 import frc.robot.Robot;
 import frc.robot.subsystems.DriveBase2020;
 import frc.robot.subsystems.DriveBasePre2020;
@@ -161,6 +162,23 @@ public class Config {
     // Drivetrain PID values
     public static double DRIVETRAIN_P_SPECIFIC = robotSpecific(0.037, 0.0, 0.0, 0.018d, 0.0, 0.25);
     public static double DRIVETRAIN_D_SPECIFIC = robotSpecific(0.0023, 0.0, 0.0, 0.0016d, 0.0, 0.03);
+
+    // Drivetain data
+    public static double drivetrainWheelDiameter = 0.1524; // Diameter of wheel is 0.1524
+    public static int ticksPerRevolution = 4096;
+
+    // Ramsete Default values
+    public static double kRamseteB = 2.0;
+    public static double kRamseteZeta = 0.7;
+
+    // Frc-characterization data
+    public static double ksVolts; // robotSpecific()
+    public static double kvVoltSecondsPerMeter;
+    public static double kaVoltSecondsSquaredPerMeter;
+
+    // Track width and kinematics
+    public static double kTrackWidth; 
+    public static DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackWidth);
 
     public static final FluidConstant<Integer> RPM = new FluidConstant<>("Shooter RPM", 1700)
             .registerToTable(Config.constantsTable);
