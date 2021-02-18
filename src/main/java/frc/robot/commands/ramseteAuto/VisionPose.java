@@ -4,6 +4,8 @@ import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
+import frc.robot.config.Config;
 import frc.robot.subsystems.DriveBaseHolder;
 
 public class VisionPose {
@@ -12,13 +14,13 @@ public class VisionPose {
 
     VisionData coneMarkerData;
     private VisionPose() {
-        coneMarkerData = new VisionData(VisionType.ConeMarker, backDriverCamera);
+        coneMarkerData = new VisionData(VisionType.MiddleOfCones, backDriverCamera);
 
     }
 
     enum VisionType {
         // 2021 game
-        ConeMarker(1),
+        MiddleOfCones(1),
         WallTapeTarget(2), 
         OuterGoal(3);
         
@@ -38,6 +40,37 @@ public class VisionPose {
         }
     }
 
+    /**
+     * Get the Trajectory Config object needed to construct a trajectory
+     * 
+     * Velocity Units are in meters per second
+     */
+    public TrajectoryConfig getTrajConfig(double startVelocity, double endVelocity, boolean isReversed) {
+        return Config.trajectoryConfig.setStartVelocity(startVelocity).setEndVelocity(endVelocity).setReversed(isReversed);
+    }
+
+    /**
+     * Get the Trajectory Config object needed to construct a trajectory
+     * 
+     * Velocity Units are in meters per second
+     * Determines whether to drive in reverse based on Vision Type
+     */
+    public TrajectoryConfig getTrajConfig(double startVelocity, double endVelocity, VisionType visionType) {
+        return getTrajConfig(startVelocity, endVelocity, getReversed(visionType));
+    }
+
+    private boolean getReversed(VisionType visionType) {
+        switch (visionType) {
+        case MiddleOfCones:
+            return true;
+
+        case WallTapeTarget:
+
+        case OuterGoal:
+        }
+
+        return false;
+    }
 
     /**
      * Returns a Pose relative to field of a given vision target
@@ -67,8 +100,8 @@ public class VisionPose {
     private Pose2d targetPose(VisionType visionType) {
         Pose2d relativePose = null;
         switch (visionType) {
-            case ConeMarker:
-                relativePose = new Pose2d(calcConeMarker(), new Rotation2d(0));
+            case MiddleOfCones:
+                relativePose = new Pose2d(calcMiddleOfCones(), new Rotation2d(0));
                 break;
     
             case WallTapeTarget:
@@ -133,18 +166,18 @@ public class VisionPose {
 
 
 
-    private Translation2d calcConeMarker() {
+    private Translation2d calcMiddleOfCones() {
         double distanceToTarget = 0; // Get from vision network table
-        double robotAngleToTarget = 0; // Get from vision network table
+        double angleAtRobot = 0; // Get from vision network table
 
-        if ((int) distanceToTarget == -99 || (int) robotAngleToTarget == -99)
+        if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99)
             return null;
         if (distanceToTarget <= 0.2 || distanceToTarget > 6.0)
             return null;
-        if (Math.abs(robotAngleToTarget) > 30)
+        if (Math.abs(angleAtRobot) > 30)
             return null;
 
-        Rotation2d angle = Rotation2d.fromDegrees(robotAngleToTarget);
+        Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
         Translation2d translation = new Translation2d(distanceToTarget, angle);
 
         translation = transformCameraToCentre(new Pose2d(translation, new Rotation2d(0)), coneMarkerData.cameraOffsetFromCentre, true).getTranslation();

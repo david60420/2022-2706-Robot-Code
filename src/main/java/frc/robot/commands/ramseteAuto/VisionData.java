@@ -19,9 +19,4 @@ public class VisionData {
 
         cameraOffsetFromCentre = cameraLocationFromCentre;
     }
-
-    public VisionData(VisionType visionType, Translation2d cameraLocationFromCentre) {
-        this.VisionData(visionType, new Pose2d(cameraLocationFromCentre, new Rotation2d(0))); 
-    }
-
 }

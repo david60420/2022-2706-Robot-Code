@@ -2,7 +2,11 @@ package frc.robot.config;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
+import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
+import edu.wpi.first.wpilibj.trajectory.constraint.TrajectoryConstraint;
 import frc.robot.Robot;
 import frc.robot.subsystems.DriveBase2020;
 import frc.robot.subsystems.DriveBasePre2020;
@@ -185,6 +189,18 @@ public class Config {
     public static double kTrackWidth; 
     public static DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackWidth);
 
+    // Ramsete Max Velocity and max acceleration
+    public static double kMaxSpeedMetersPerSecond = 2.5;
+    public static double kMaxAccelerationMetersPerSecondSquared = 2.5; 
+
+    // TrajectoryConfig & TrajectoryConstraint - needed to construct a trajectory
+    private static TrajectoryConstraint autoVoltageConstraint = new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(Config.ksVolts,
+            Config.kvVoltSecondsPerMeter, Config.kaVoltSecondsSquaredPerMeter), Config.kDriveKinematics, 10);
+
+    public static TrajectoryConfig trajectoryConfig = new TrajectoryConfig(kMaxSpeedMetersPerSecond, kMaxAccelerationMetersPerSecondSquared)
+        .setKinematics(kDriveKinematics).addConstraint(autoVoltageConstraint);
+    
+    
     // Ramsete/Talon P values
     public static int DRIVETRAIN_SLOTID_RAMSETE = 1;
     public static double RAMSETE_KF = 0;
