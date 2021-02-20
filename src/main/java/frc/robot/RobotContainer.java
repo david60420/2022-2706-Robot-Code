@@ -11,14 +11,22 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.*;
 import frc.robot.config.Config;
 import frc.robot.sensors.AnalogSelector;
 import frc.robot.subsystems.*;
 import frc.robot.commands.ArcadeDriveWithJoystick;
+import frc.robot.commands.ramseteAuto.RamseteCommandMerge;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -127,12 +135,22 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
+
+        
+
+
         int selectorOne = 1;
 
         if (analogSelectorOne != null){
             selectorOne = analogSelectorOne.getIndex();
+            System.out.println("SELECTOR SWITCH NOT NULL AND ID " + selectorOne);
         }
         logger.info("Selectors: " + selectorOne);
+
+        if (Config.hasSelectorSwitches == false) {
+            selectorOne = 3;
+            logger.info("No Selector Switches - Forced Id: " + selectorOne);
+        }
 
         if (selectorOne == 0) {
             // This is our 'do nothing' selector
@@ -140,10 +158,20 @@ public class RobotContainer {
         } else if (selectorOne == 1) {
             return new SpinUpShooterWithTime(Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.7, 7)).andThen(new DriveWithTime(0.5, 0.5, 0.5));
            // return new DriveWithTime(AUTO_DRIVE_TIME,  AUTO_LEFT_MOTOR_SPEED,  AUTO_RIGHT_MOTOR_SPEED);
+        
         } else if(selectorOne == 2) {
-            return new DriveWithTime(0.5, 0.5, 0.5);
-        }
+            return new DriveWithTime(0.5, 0.5, 0.5); 
 
+        } else if(selectorOne == 3) {
+            // Run a example ramsete command, drive forward by 1 meter
+            Command resetOdometry = new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d()), DriveBaseHolder.getInstance());
+            
+            Trajectory trajectory = TrajectoryGenerator.generateTrajectory(List.of(
+                new Pose2d(), new Pose2d(1, 0, Rotation2d.fromDegrees(0))), 
+                Config.trajectoryConfig.setStartVelocity(0).setEndVelocity(0).setReversed(false));
+
+            return resetOdometry.andThen(new RamseteCommandMerge(trajectory));
+        }
 
 
 

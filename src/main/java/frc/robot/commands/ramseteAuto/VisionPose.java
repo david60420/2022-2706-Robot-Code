@@ -6,23 +6,37 @@ import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import frc.robot.config.Config;
+import frc.robot.nettables.VisionCtrlNetTable;
 import frc.robot.subsystems.DriveBaseHolder;
 
 public class VisionPose {
-    // Camera Poses from centre
-    final Pose2d backDriverCamera = new Pose2d(0, 0, Rotation2d.fromDegrees(0)); // <- needs to be filled out
+    // static variable single_instance of type Singleton 
+    private static VisionPose single_instance = null;
+
+    // static method to create instance of Singleton class 
+    public static VisionPose getInstance() 
+    { 
+        if (single_instance == null) 
+            single_instance = new VisionPose(); 
+  
+        return single_instance; 
+    }
 
     VisionData coneMarkerData;
     private VisionPose() {
         coneMarkerData = new VisionData(VisionType.MiddleOfCones, backDriverCamera);
-
     }
+
+    // Camera Poses from centre
+    final Pose2d backDriverCamera = new Pose2d(0, 0, Rotation2d.fromDegrees(0)); // <- needs to be filled out
+
 
     enum VisionType {
         // 2021 game
         MiddleOfCones(1),
         WallTapeTarget(2), 
-        OuterGoal(3);
+        OuterGoal(3),
+        TPracticeTarget(4);
         
         
 
@@ -37,6 +51,30 @@ public class VisionPose {
 
         private int getValue(VisionType visionType) {
             return value;
+        }
+    }
+
+    /**
+     * Init the Vision 
+     */
+    public void initVision(VisionType visionType) {
+        switch (visionType) {
+            case MiddleOfCones:
+
+                break;
+
+            case WallTapeTarget:
+
+                break;
+            case OuterGoal:
+                VisionCtrlNetTable.setTapeMode(); 
+                break;
+
+            case TPracticeTarget:
+
+                break;
+            
+            
         }
     }
 
@@ -62,11 +100,14 @@ public class VisionPose {
     private boolean getReversed(VisionType visionType) {
         switch (visionType) {
         case MiddleOfCones:
-            return true;
+            return false;
 
         case WallTapeTarget:
 
         case OuterGoal:
+
+        case TPracticeTarget:
+            return false;
         }
 
         return false;
@@ -107,6 +148,10 @@ public class VisionPose {
             case WallTapeTarget:
                 break;
             case OuterGoal:
+                break;
+
+            case TPracticeTarget:
+                relativePose = new Pose2d(calcTPracticeTarget(), new Rotation2d(0));
                 break;
 
             }
@@ -184,8 +229,24 @@ public class VisionPose {
 
 
         return translation;
-        
+    }
 
-        
+    private Translation2d calcTPracticeTarget() {
+        double distanceToTarget = 0;
+        double angleAtRobot = 0; 
+
+        if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99)
+            return null;
+        if (distanceToTarget <= 0.2 || distanceToTarget > 6.0)
+            return null;
+        if (Math.abs(angleAtRobot) > 30)
+            return null;
+
+        Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
+        Translation2d translation = new Translation2d(distanceToTarget, angle);
+
+        translation = transformTranslationOffWall(translation, 3, Rotation2d.fromDegrees(DriveBaseHolder.getInstance().getCurrentAngle()));
+    
+        return translation;
     }
 }

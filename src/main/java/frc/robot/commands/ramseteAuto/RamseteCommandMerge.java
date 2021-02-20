@@ -91,6 +91,8 @@ public class RamseteCommandMerge extends CommandBase {
 
         addRequirements(m_driveSubsystem);
 
+        usbLogger = new SimpleCsvLogger();
+
         var table = NetworkTableInstance.getDefault().getTable("RamseteAuto");
         xError = table.getEntry("xError");
         yError = table.getEntry("yError");
