@@ -59,6 +59,7 @@ public class DriveBase2020 extends DriveBase {
             climberTalon = new WPI_TalonSRX(Config.CLIMBER_TALON);
 
         differentialDrive = new DifferentialDrive(leftMaster, rightMaster);
+        differentialDrive.setRightSideInverted(Config.DRIVETRAIN_INVERT_DIFFERENTIALDRIVE);
 
         resetMotors();
         setTalonConfigurations();
@@ -306,6 +307,14 @@ public class DriveBase2020 extends DriveBase {
     public double[] getMeasuredVelocities() {
         double leftVel = leftMaster.getSelectedSensorVelocity();
         double rightVel = rightMaster.getSelectedSensorVelocity();
+        return new double[]{leftVel, rightVel};
+    }
+
+    @Override
+    public double[] getMeasuredMetersPerSecond() {
+        double[] velTalonUnits = getMeasuredVelocities();
+        double leftVel = talonVelocityToMetersPerSecond(velTalonUnits[0]);
+        double rightVel = talonVelocityToMetersPerSecond(velTalonUnits[1]);
         return new double[]{leftVel, rightVel};
     }
 

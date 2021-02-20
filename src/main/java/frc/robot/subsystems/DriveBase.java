@@ -181,6 +181,10 @@ public abstract class DriveBase extends SubsystemBase {
         return new double[1];
     }
 
+    public double[] getMeasuredMetersPerSecond() {
+        return new double[1];
+    }
+
     public void setActivePIDSlot(int slotId) {
         
     }
