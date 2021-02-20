@@ -99,6 +99,8 @@ public class Config {
     public static boolean DRIVETRAIN_LEFT_SENSORPHASE = robotSpecific(false, false, false, true);
     public static boolean DRIVETRAIN_RIGHT_SENSORPHASE = robotSpecific(false, false, false, false);
 
+    public static boolean DRIVETRAIN_INVERT_DIFFERENTIALDRIVE = robotSpecific(false, false, false, true);
+
     // Current limiter Constants
     public static int PEAK_CURRENT_AMPS = 80;           //Peak current threshold to trigger the current limit
     public static int PEAK_TIME_MS = 250;               //Time after current exceeds peak current to trigger current limit
