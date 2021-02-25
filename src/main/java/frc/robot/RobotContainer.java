@@ -11,12 +11,14 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.*;
@@ -136,9 +138,6 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
 
-        
-
-
         int selectorOne = 1;
 
         if (analogSelectorOne != null){
@@ -148,7 +147,7 @@ public class RobotContainer {
         logger.info("Selectors: " + selectorOne);
 
         if (Config.hasSelectorSwitches == false) {
-            selectorOne = 3;
+            selectorOne = 4;
             logger.info("No Selector Switches - Forced Id: " + selectorOne);
         }
 
@@ -163,16 +162,22 @@ public class RobotContainer {
             return new DriveWithTime(0.5, 0.5, 0.5); 
 
         } else if(selectorOne == 3) {
+            // Directly Tell the talons to go both sides a specific value. (For setting inversions)
+            SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Config.ksVolts, Config.kvVoltSecondsPerMeter, Config.kaVoltSecondsSquaredPerMeter);
+            double vel = 1.0;
+
+            return new RunCommand(() -> DriveBaseHolder.getInstance().tankDriveVelocities(vel, vel, feedforward.calculate(vel), feedforward.calculate(vel)));
+
+        } else if(selectorOne == 4) {
             // Run a example ramsete command, drive forward by 1 meter
             Command resetOdometry = new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d()), DriveBaseHolder.getInstance());
             
             Trajectory trajectory = TrajectoryGenerator.generateTrajectory(List.of(
-                new Pose2d(), new Pose2d(1, 0, Rotation2d.fromDegrees(0))), 
+                new Pose2d(), new Pose2d(1.5, -0.5, Rotation2d.fromDegrees(0))), 
                 Config.trajectoryConfig.setStartVelocity(0).setEndVelocity(0).setReversed(false));
 
             return resetOdometry.andThen(new RamseteCommandMerge(trajectory));
-        }
-
+        }        
 
 
         // Also return null if this ever gets to here because safety

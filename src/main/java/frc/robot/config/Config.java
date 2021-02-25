@@ -92,14 +92,15 @@ public class Config {
     public static boolean LEFT_SLAVE_ISVICTOR = robotSpecific(true, true, true, false);
     public static boolean RIGHT_SLAVE_ISVICTOR = robotSpecific(true, true, true, false);
     
+    // Invert talons to consider forward as forward (same practice for all objects)
     public static boolean LEFT_FRONT_INVERTED = robotSpecific(false, false, false, false);
-    public static boolean RIGHT_FRONT_INVERTED = robotSpecific(false, false, false, false);
+    public static boolean RIGHT_FRONT_INVERTED = robotSpecific(false, false, false, true);
     public static boolean LEFT_REAR_INVERTED = robotSpecific(false, false, false, false);
-    public static boolean RIGHT_REAR_INVERTED = robotSpecific(false, false, false, false);
+    public static boolean RIGHT_REAR_INVERTED = robotSpecific(false, false, false, true);
     public static boolean DRIVETRAIN_LEFT_SENSORPHASE = robotSpecific(false, false, false, true);
-    public static boolean DRIVETRAIN_RIGHT_SENSORPHASE = robotSpecific(false, false, false, false);
+    public static boolean DRIVETRAIN_RIGHT_SENSORPHASE = robotSpecific(false, false, false, true);
 
-    public static boolean DRIVETRAIN_INVERT_DIFFERENTIALDRIVE = robotSpecific(false, false, false, true);
+    public static boolean DRIVETRAIN_INVERT_DIFFERENTIALDRIVE = robotSpecific(false, false, false, false);
 
     // Current limiter Constants
     public static int PEAK_CURRENT_AMPS = 80;           //Peak current threshold to trigger the current limit
@@ -192,8 +193,8 @@ public class Config {
     public static DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackWidth);
 
     // Ramsete Max Velocity and max acceleration
-    public static double kMaxSpeedMetersPerSecond = 1.5;
-    public static double kMaxAccelerationMetersPerSecondSquared = 1.0; 
+    public static double kMaxSpeedMetersPerSecond = 2.5;
+    public static double kMaxAccelerationMetersPerSecondSquared = 2.5; 
 
     // TrajectoryConfig & TrajectoryConstraint - needed to construct a trajectory
     private static TrajectoryConstraint autoVoltageConstraint = new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(Config.ksVolts,

@@ -65,7 +65,7 @@ public class RamseteCommandMerge extends CommandBase {
     private final DriveBase m_driveSubsystem;
 
     // NetworkTable Values
-    private NetworkTableEntry xError, yError, rotError;
+    private NetworkTableEntry xError, yError, rotError, xCurrent, yCurrent, rotCurrent;
 
     // USB Logger
     private SimpleCsvLogger usbLogger;
@@ -98,6 +98,10 @@ public class RamseteCommandMerge extends CommandBase {
         yError = table.getEntry("yError");
         rotError = table.getEntry("rotError"); 
 
+        xCurrent = table.getEntry("xError");
+        yCurrent = table.getEntry("yCurrnet");
+        rotCurrent = table.getEntry("rotCurrent"); 
+
     }
 
     @Override
@@ -129,6 +133,10 @@ public class RamseteCommandMerge extends CommandBase {
         xError.setNumber(poseError.getTranslation().getX());
         yError.setNumber(poseError.getTranslation().getY());
         rotError.setNumber(poseError.getRotation().getDegrees());
+
+        xCurrent.setNumber(currentPose.getTranslation().getX());
+        yCurrent.setNumber(currentPose.getTranslation().getY());
+        rotCurrent.setNumber(currentPose.getRotation().getDegrees());
 
         var targetWheelSpeeds = m_kinematics.toWheelSpeeds(m_follower.calculate(currentPose, desiredState));
 
