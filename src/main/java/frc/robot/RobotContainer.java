@@ -14,10 +14,12 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -25,8 +27,8 @@ import frc.robot.commands.*;
 import frc.robot.config.Config;
 import frc.robot.sensors.AnalogSelector;
 import frc.robot.subsystems.*;
-import frc.robot.commands.ArcadeDriveWithJoystick;
 import frc.robot.commands.ramseteAuto.RamseteCommandMerge;
+import frc.robot.commands.ramseteAuto.VisionPose;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -147,7 +149,7 @@ public class RobotContainer {
         logger.info("Selectors: " + selectorOne);
 
         if (Config.hasSelectorSwitches == false) {
-            selectorOne = 4;
+            selectorOne = 6;
             logger.info("No Selector Switches - Forced Id: " + selectorOne);
         }
 
@@ -155,7 +157,7 @@ public class RobotContainer {
             // This is our 'do nothing' selector
             return null;
         } else if (selectorOne == 1) {
-            return new SpinUpShooterWithTime(Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.7, 7)).andThen(new DriveWithTime(0.5, 0.5, 0.5));
+            return new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.7, 7)); //.andThen(new DriveWithTime(0.5, 0.5, 0.5));
            // return new DriveWithTime(AUTO_DRIVE_TIME,  AUTO_LEFT_MOTOR_SPEED,  AUTO_RIGHT_MOTOR_SPEED);
         
         } else if(selectorOne == 2) {
@@ -164,20 +166,61 @@ public class RobotContainer {
         } else if(selectorOne == 3) {
             // Directly Tell the talons to go both sides a specific value. (For setting inversions)
             SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Config.ksVolts, Config.kvVoltSecondsPerMeter, Config.kaVoltSecondsSquaredPerMeter);
-            double vel = 1.0;
+            double vel = 2.0;
 
             return new RunCommand(() -> DriveBaseHolder.getInstance().tankDriveVelocities(vel, vel, feedforward.calculate(vel), feedforward.calculate(vel)));
 
         } else if(selectorOne == 4) {
-            // Run a example ramsete command, drive forward by 1 meter
+            // Run a example ramsete command
             Command resetOdometry = new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d()), DriveBaseHolder.getInstance());
             
             Trajectory trajectory = TrajectoryGenerator.generateTrajectory(List.of(
-                new Pose2d(), new Pose2d(1.5, -0.5, Rotation2d.fromDegrees(0))), 
+                new Pose2d(), new Pose2d(2.5, -0.5, Rotation2d.fromDegrees(0))), 
                 Config.trajectoryConfig.setStartVelocity(0).setEndVelocity(0).setReversed(false));
 
             return resetOdometry.andThen(new RamseteCommandMerge(trajectory));
-        }        
+
+        } else if (selectorOne == 5) {
+            // Command shoot = new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.5, 7));
+            Command intake = new OperatorIntakeCommand();
+
+            Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(
+                List.of(new Pose2d(2.8, 1.7, Rotation2d.fromDegrees(-25.9)), // START POSE
+                // new Translation2d(x, y), // WAYPOINT
+                new Pose2d(5.2, 1.05, Rotation2d.fromDegrees(0))),  // END POSE
+                VisionPose.getInstance().getTrajConfig(0, 2, false)); // CONFIG
+
+            Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(
+                new Pose2d(5.2, 1.05, Rotation2d.fromDegrees(0)), // START POSE
+                List.of(new Translation2d(3.5, 1.5)), // WAYPOINT
+                new Pose2d(2.1, 2.3, Rotation2d.fromDegrees(-15)),  // END POSE
+                VisionPose.getInstance().getTrajConfig(0, 0, true)); // CONFIG
+
+
+            return new SequentialCommandGroup(
+                new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d(2.8, 1.7, Rotation2d.fromDegrees(-25.9)))),
+                // new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.5, 7)),
+                new ParallelRaceGroup(intake, new RamseteCommandMerge(trajectory1)),
+                new RamseteCommandMerge(trajectory2),
+                new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.5, 7))
+                
+            );
+
+
+
+        } else if (selectorOne == 6) {
+            // Run a example ramsete command
+            Command resetOdometry = new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d()), DriveBaseHolder.getInstance());
+            
+
+            Trajectory trajDriveForward = TrajectoryGenerator.generateTrajectory(
+                List.of(new Pose2d(), 
+                new Pose2d(2.5, 0, new Rotation2d(0))), 
+                VisionPose.getInstance().getTrajConfig(0, 0, false));
+
+            ParallelRaceGroup cmdGroup = new ParallelRaceGroup(new AutoIntakeCommand(), new RamseteCommandMerge(trajDriveForward));
+            return resetOdometry.andThen(cmdGroup);
+        }  
 
 
         // Also return null if this ever gets to here because safety

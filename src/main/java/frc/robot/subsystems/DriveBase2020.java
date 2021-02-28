@@ -11,6 +11,9 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.ctre.phoenix.sensors.PigeonIMU;
+
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
@@ -35,6 +38,8 @@ public class DriveBase2020 extends DriveBase {
     
     // Logging
     private Logger logger = Logger.getLogger("DriveBase2020");
+
+    private NetworkTableEntry leftEncoder, rightEncoder, currentAngle;
 
     public DriveBase2020() {
         leftMaster = new WPI_TalonSRX(Config.LEFT_FRONT_MOTOR);
@@ -71,10 +76,16 @@ public class DriveBase2020 extends DriveBase {
                 pigeon = new PigeonIMU((WPI_TalonSRX) leftSlave);
             else
                 pigeon = new PigeonIMU(new WPI_TalonSRX(Config.PIGEON_ID));
+
             pigeon.setFusedHeading(0d, Config.CAN_TIMEOUT_LONG);
         }
 
         logger.addHandler(Config.logFileHandler);
+
+        var table = NetworkTableInstance.getDefault().getTable("DrivetrainData");
+        leftEncoder = table.getEntry("leftEncoder");
+        rightEncoder = table.getEntry("rightEncoder");
+        currentAngle = table.getEntry("currentAngle");
 
     }
 
@@ -273,6 +284,11 @@ public class DriveBase2020 extends DriveBase {
     @Override
     public void periodic() {
         odometry.update(Rotation2d.fromDegrees(getCurrentAngle()), getLeftPosition(), getRightPosition());
+
+        leftEncoder.setNumber(getLeftPosition());
+        rightEncoder.setNumber(getRightPosition());
+        currentAngle.setNumber(getCurrentAngle());
+
     }
 
     @Override 
@@ -337,12 +353,12 @@ public class DriveBase2020 extends DriveBase {
         double circumference = Math.PI * Config.drivetrainWheelDiameter;
         double metersPerTick = circumference / Config.ticksPerRevolution;
         result *= metersPerTick;
-        return result;
+        return result;  
     }
 
     /**
      * Converting m/s to talon ticks/100ms
-     * 
+     *  
      * Unit Conversion Method
      */
     private double metersPerSecondToTalonVelocity(double metersPerSecond) {

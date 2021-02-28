@@ -22,6 +22,8 @@ import java.util.Date;
 import java.util.logging.FileHandler;
 import java.util.logging.SimpleFormatter;
 
+import com.ctre.phoenix.ErrorCode;
+
 /**
  * Config manager for the robot
  */
@@ -94,11 +96,11 @@ public class Config {
     
     // Invert talons to consider forward as forward (same practice for all objects)
     public static boolean LEFT_FRONT_INVERTED = robotSpecific(false, false, false, false);
-    public static boolean RIGHT_FRONT_INVERTED = robotSpecific(false, false, false, true);
+    public static boolean RIGHT_FRONT_INVERTED = robotSpecific(false, true, false, true);
     public static boolean LEFT_REAR_INVERTED = robotSpecific(false, false, false, false);
-    public static boolean RIGHT_REAR_INVERTED = robotSpecific(false, false, false, true);
-    public static boolean DRIVETRAIN_LEFT_SENSORPHASE = robotSpecific(false, false, false, true);
-    public static boolean DRIVETRAIN_RIGHT_SENSORPHASE = robotSpecific(false, false, false, true);
+    public static boolean RIGHT_REAR_INVERTED = robotSpecific(false, true, false, true);
+    public static boolean DRIVETRAIN_LEFT_SENSORPHASE = robotSpecific(false, true, false, true);
+    public static boolean DRIVETRAIN_RIGHT_SENSORPHASE = robotSpecific(false, true, false, true);
 
     public static boolean DRIVETRAIN_INVERT_DIFFERENTIALDRIVE = robotSpecific(false, false, false, false);
 
@@ -172,8 +174,8 @@ public class Config {
     public static String YAW_OUTER_PORT         = "YawToTarget";
 
     // Drivetrain PID values
-    public static double DRIVETRAIN_P_SPECIFIC = robotSpecific(0.037, 0.0, 0.0, 0.018d, 0.0, 0.25);
-    public static double DRIVETRAIN_D_SPECIFIC = robotSpecific(0.0023, 0.0, 0.0, 0.0016d, 0.0, 0.03);
+    public static double DRIVETRAIN_P_SPECIFIC = robotSpecific(0.037, 0.037, 0.0, 0.018d, 0.0, 0.25);
+    public static double DRIVETRAIN_D_SPECIFIC = robotSpecific(0.0023, 0.0023, 0.0, 0.0016d, 0.0, 0.03);
 
     // Drivetain data
     public static double drivetrainWheelDiameter = 0.1524; // Diameter of wheel is 0.1524
@@ -184,17 +186,17 @@ public class Config {
     public static double kRamseteZeta = 0.7;
 
     // Frc-characterization data
-    public static double ksVolts = robotSpecific(0.0d, 0.0, 0.0, 1.31); // robotSpecific()
-    public static double kvVoltSecondsPerMeter = robotSpecific(0.0d, 0.0, 0.0, 3.15);
-    public static double kaVoltSecondsSquaredPerMeter = robotSpecific(0.0d, 0.0, 0.0, 0.569);
+    public static double ksVolts = robotSpecific(0.0d, 0.819d, 0.0, 1.31); // robotSpecific()
+    public static double kvVoltSecondsPerMeter = robotSpecific(0.0d, 3.24, 0.0, 3.15);
+    public static double kaVoltSecondsSquaredPerMeter = robotSpecific(0.0d, 0.343, 0.0, 0.569);
 
     // Track width and kinematics
-    public static double kTrackWidth = robotSpecific(0.0d, 0.0, 0.0, 0.69);
+    public static double kTrackWidth = robotSpecific(0.0d, 0.5669, 0.0, 0.69);
     public static DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackWidth);
 
     // Ramsete Max Velocity and max acceleration
-    public static double kMaxSpeedMetersPerSecond = 2.5;
-    public static double kMaxAccelerationMetersPerSecondSquared = 2.5; 
+    public static double kMaxSpeedMetersPerSecond = 0.5;
+    public static double kMaxAccelerationMetersPerSecondSquared = 1.0; 
 
     // TrajectoryConfig & TrajectoryConstraint - needed to construct a trajectory
     private static TrajectoryConstraint autoVoltageConstraint = new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(Config.ksVolts,
@@ -207,13 +209,13 @@ public class Config {
     // Ramsete/Talon P values
     public static int DRIVETRAIN_SLOTID_RAMSETE = 1;
     public static double RAMSETE_KF = 0;
-    public static double RAMSETE_KP = robotSpecific(0.0d, 0.0, 0.0, 0.0105); // Fill in from robot characterization
+    public static double RAMSETE_KP = robotSpecific(0.0d, 0.0595d, 0.0, 0.0105); // Fill in from robot characterization
     public static double RAMSETE_KI = 0;
     public static double RAMSETE_KD = 0;
     public static double RAMSETE_ALLOWABLE_PID_ERROR = 0; // <- never stop the P loop from running
     public static double RAMSETE_VOLTAGE_COMPENSATION = 12;
 
-    public static boolean hasSelectorSwitches = robotSpecific(true, true, false, false);
+    public static boolean hasSelectorSwitches = robotSpecific(true, false, false, false);
 
     public static final FluidConstant<Integer> RPM = new FluidConstant<>("Shooter RPM", 1700)
             .registerToTable(Config.constantsTable);

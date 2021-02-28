@@ -126,6 +126,8 @@ public class Robot extends TimedRobot {
 
         analogInput = new AnalogInput(3);
 
+        DriverStation.getInstance().silenceJoystickConnectionWarning(true);
+
     }
 
     /**

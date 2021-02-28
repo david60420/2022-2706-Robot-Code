@@ -98,7 +98,7 @@ public class RamseteCommandMerge extends CommandBase {
         yError = table.getEntry("yError");
         rotError = table.getEntry("rotError"); 
 
-        xCurrent = table.getEntry("xError");
+        xCurrent = table.getEntry("xCurrent");
         yCurrent = table.getEntry("yCurrnet");
         rotCurrent = table.getEntry("rotCurrent"); 
 

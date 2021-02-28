@@ -130,7 +130,7 @@ public class SimpleCsvLogger {
         String line_to_write = "";
 
         if (log_open == false) {
-            System.out.println("Error - Log is not yet opened, cannot write!");
+            // System.out.println("Error - Log is not yet opened, cannot write!");
             return -1;
         }
 
