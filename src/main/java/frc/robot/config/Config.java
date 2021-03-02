@@ -195,7 +195,7 @@ public class Config {
     public static DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackWidth);
 
     // Ramsete Max Velocity and max acceleration
-    public static double kMaxSpeedMetersPerSecond = 0.5;
+    public static double kMaxSpeedMetersPerSecond = 1.2;
     public static double kMaxAccelerationMetersPerSecondSquared = 1.0; 
 
     // TrajectoryConfig & TrajectoryConstraint - needed to construct a trajectory

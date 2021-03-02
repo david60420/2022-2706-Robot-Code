@@ -149,7 +149,7 @@ public class RobotContainer {
         logger.info("Selectors: " + selectorOne);
 
         if (Config.hasSelectorSwitches == false) {
-            selectorOne = 6;
+            selectorOne = 5;
             logger.info("No Selector Switches - Forced Id: " + selectorOne);
         }
 
@@ -181,28 +181,26 @@ public class RobotContainer {
             return resetOdometry.andThen(new RamseteCommandMerge(trajectory));
 
         } else if (selectorOne == 5) {
-            // Command shoot = new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.5, 7));
-            Command intake = new OperatorIntakeCommand();
 
             Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(
-                List.of(new Pose2d(2.8, 1.7, Rotation2d.fromDegrees(-25.9)), // START POSE
-                // new Translation2d(x, y), // WAYPOINT
-                new Pose2d(5.2, 1.05, Rotation2d.fromDegrees(0))),  // END POSE
+                List.of(new Pose2d(2.8, 1.7, Rotation2d.fromDegrees(-24)), // START POSE
+                new Pose2d(5.2, 1.2, Rotation2d.fromDegrees(0))),  // END POSE
                 VisionPose.getInstance().getTrajConfig(0, 2, false)); // CONFIG
 
             Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(
-                new Pose2d(5.2, 1.05, Rotation2d.fromDegrees(0)), // START POSE
+                new Pose2d(5.2, 1.2, Rotation2d.fromDegrees(0)), // START POSE
                 List.of(new Translation2d(3.5, 1.5)), // WAYPOINT
-                new Pose2d(2.1, 2.3, Rotation2d.fromDegrees(-15)),  // END POSE
+                new Pose2d(3.0, 2.1, Rotation2d.fromDegrees(-10)),  // END POSE
                 VisionPose.getInstance().getTrajConfig(0, 0, true)); // CONFIG
 
 
             return new SequentialCommandGroup(
-                new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d(2.8, 1.7, Rotation2d.fromDegrees(-25.9)))),
-                // new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.5, 7)),
-                new ParallelRaceGroup(intake, new RamseteCommandMerge(trajectory1)),
+                new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d(2.8, 1.7, Rotation2d.fromDegrees(-24)))),
+                new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.5, 7)),
+                new ParallelRaceGroup(new AutoIntakeCommand(), new RamseteCommandMerge(trajectory1)),
                 new RamseteCommandMerge(trajectory2),
-                new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.5, 7))
+                new OuterGoalErrorLoop(true, 3.0),
+                new ParallelRaceGroup(new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.5, 8)), new AutoIntakeCommand())
                 
             );
 
@@ -211,16 +209,20 @@ public class RobotContainer {
         } else if (selectorOne == 6) {
             // Run a example ramsete command
             Command resetOdometry = new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d()), DriveBaseHolder.getInstance());
-            
 
             Trajectory trajDriveForward = TrajectoryGenerator.generateTrajectory(
                 List.of(new Pose2d(), 
-                new Pose2d(2.5, 0, new Rotation2d(0))), 
+                new Pose2d(1.5, 0, new Rotation2d(0))), 
                 VisionPose.getInstance().getTrajConfig(0, 0, false));
 
             ParallelRaceGroup cmdGroup = new ParallelRaceGroup(new AutoIntakeCommand(), new RamseteCommandMerge(trajDriveForward));
             return resetOdometry.andThen(cmdGroup);
-        }  
+
+        } else if (selectorOne == 7) {
+            return new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d(2.8, 1.7, Rotation2d.fromDegrees(-24))));
+            // return new OuterGoalErrorLoop(true, 3.0);
+
+        }
 
 
         // Also return null if this ever gets to here because safety

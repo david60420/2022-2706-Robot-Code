@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
+import frc.robot.Robot;
 import frc.robot.config.Config;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -39,7 +40,7 @@ public class DriveBase2020 extends DriveBase {
     // Logging
     private Logger logger = Logger.getLogger("DriveBase2020");
 
-    private NetworkTableEntry leftEncoder, rightEncoder, currentAngle;
+    private NetworkTableEntry leftEncoder, rightEncoder, currentX, currentY, currentAngle;
 
     public DriveBase2020() {
         leftMaster = new WPI_TalonSRX(Config.LEFT_FRONT_MOTOR);
@@ -85,7 +86,10 @@ public class DriveBase2020 extends DriveBase {
         var table = NetworkTableInstance.getDefault().getTable("DrivetrainData");
         leftEncoder = table.getEntry("leftEncoder");
         rightEncoder = table.getEntry("rightEncoder");
+        currentX = table.getEntry("currentX");
+        currentY = table.getEntry("currentY");
         currentAngle = table.getEntry("currentAngle");
+        
 
     }
 
@@ -257,11 +261,20 @@ public class DriveBase2020 extends DriveBase {
         
     }
 
+    @Override
     public void setCoastMode() {
         leftMaster.setNeutralMode(NeutralMode.Coast);
         rightMaster.setNeutralMode(NeutralMode.Coast);
         leftSlave.setNeutralMode(NeutralMode.Coast);
         rightSlave.setNeutralMode(NeutralMode.Coast);
+    }
+
+    @Override
+    public void setBrakeMode() {
+        leftMaster.setNeutralMode(NeutralMode.Brake);
+        rightMaster.setNeutralMode(NeutralMode.Brake);
+        leftSlave.setNeutralMode(NeutralMode.Brake);
+        rightSlave.setNeutralMode(NeutralMode.Brake); 
     }
     
     @Override
@@ -287,7 +300,12 @@ public class DriveBase2020 extends DriveBase {
 
         leftEncoder.setNumber(getLeftPosition());
         rightEncoder.setNumber(getRightPosition());
-        currentAngle.setNumber(getCurrentAngle());
+
+        Pose2d pose = getPose();
+
+        currentX.setNumber(pose.getX());
+        currentY.setNumber(pose.getY());
+        currentAngle.setNumber(pose.getRotation().getDegrees());
 
     }
 
@@ -298,9 +316,20 @@ public class DriveBase2020 extends DriveBase {
 
     @Override
     public void resetPose(Pose2d newPose) {
-        pigeon.setFusedHeading(newPose.getRotation().getDegrees(), Config.CAN_TIMEOUT_LONG);
+        // ErrorCode pigeonHeadingSet = pigeon.setFusedHeading(newPose.getRotation().getDegrees(), Config.CAN_TIMEOUT_LONG);
+        // ErrorCode pigeonYawSet = pigeon.setYaw(newPose.getRotation().getDegrees(), Config.CAN_TIMEOUT_LONG);
+
         leftMaster.setSelectedSensorPosition(0);
         rightMaster.setSelectedSensorPosition(0);
+            
+        // System.out.println("Desired Rot: " + newPose.getRotation().getDegrees() + ", currentHeading: " + getCurrentAngle() + ", ErrorCodeHeading: " + pigeonHeadingSet.name() + ", ErrorCodeYaw: " + pigeonYawSet.name() + ", pigeon states: " + pigeon.getState());
+        // if (pigeonHeadingSet.equals(ErrorCode.OK) == false || pigeonYawSet.equals(ErrorCode.OK) == false) {
+        //     logger.severe("PIGEON FAILED - ERROR CODE NAME IS - " + pigeonHeadingSet.name() + ", YAW ERROR CODE IS: " + pigeonYawSet.name());
+        //     // Robot.haltRobot("RESETING PIGEON FAILED, STOP ROBOT SO RAMSETE DOESN'T DRIVE INTO WALL");
+        // } else if (Math.abs(Math.abs(getCurrentAngle()) - Math.abs(newPose.getRotation().getDegrees())) > 5) {
+        //     // Robot.haltRobot("PIGEON WAS RESET BUT SHOWED ERROR OF > 5 DEGREES MEANING RESET FAILED");
+        // }
+
         odometry.resetPosition(newPose, Rotation2d.fromDegrees(getCurrentAngle()));
     }
 

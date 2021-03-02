@@ -165,6 +165,14 @@ public abstract class DriveBase extends SubsystemBase {
     
     }
 
+    public void setCoastMode() {
+
+    }
+
+    public void setBrakeMode() {
+        
+    }
+
     public Pose2d getPose() {
         return null; 
     }

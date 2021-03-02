@@ -117,6 +117,7 @@ public class RamseteCommandMerge extends CommandBase {
         targetPose = m_trajectory.sample(m_trajectory.getTotalTimeSeconds()).poseMeters;
 
         m_driveSubsystem.setActivePIDSlot(Config.DRIVETRAIN_SLOTID_RAMSETE);
+        m_driveSubsystem.setCoastMode();
     }
 
     @Override
@@ -172,6 +173,9 @@ public class RamseteCommandMerge extends CommandBase {
 
     @Override
     public void end(boolean interrupted) {
+        // if (isFinished() == false) {
+        //     m_driveSubsystem.setBrakeMode();
+        // }
         m_timer.stop();
         stopLogging();
         m_driveSubsystem.setActivePIDSlot(Config.DRIVETRAIN_SLOTID_DRIVER);
