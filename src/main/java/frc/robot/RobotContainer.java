@@ -17,7 +17,6 @@ import frc.robot.commands.*;
 import frc.robot.config.Config;
 import frc.robot.sensors.AnalogSelector;
 import frc.robot.subsystems.*;
-import frc.robot.commands.ArcadeDriveWithJoystick;
 
 import java.util.logging.Logger;
 
@@ -119,6 +118,11 @@ public class RobotContainer {
         sensitiveDriving = new SensitiveDriverControl(driverStick);
         new JoystickButton(driverStick, XboxController.Button.kBumperLeft.value).whenHeld(sensitiveDriving);
 
+
+        // Set default command of feeder to index when limit is pressed
+        Command indexFeeder = new IndexBall();
+        Command pollInputSwitch = new PollLimitSwitch(indexFeeder, FeederSubsystem.getInstance(), FeederSubsystem.getInstance()::isBallAtInput);
+        FeederSubsystem.getInstance().setDefaultCommand(pollInputSwitch);
     }
 
     /**
