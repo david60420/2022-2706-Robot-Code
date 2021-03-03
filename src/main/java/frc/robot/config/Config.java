@@ -118,6 +118,23 @@ public class Config {
     public static int ARM_TALON = robotSpecific(7, 7, 12, -1);
 
     public static int FEEDER_SUBSYSTEM_TALON = robotSpecific(8, 8, -1, -1);
+
+    public static int shooterAnalogSensor = robotSpecific(8, 8);
+
+    public static int FEEDER_SWITCH_INPUT = robotSpecific(9, 9, -1, -1);
+    public static int FEEDER_SWITCH_OUTPUT = robotSpecific(8, 8, -1, -1);
+    public static int FEEDER_MAX_BALLS = 4;
+    public static int FEEDERSUBSYSTEM_INDEX_ALLOWABLE_ERROR = 50; 
+    public static int FEEDERSUBSYSTEM_POS_PAST_SWITCH = 800;
+
+    public static double FEEDER_MM_CRUISE_VELOCITY = 1500;
+    public static double FEEDER_MM_ACCELERATION = 2000;
+    public static int FEEDER_MM_SCURVE = 2;
+
+    public static double FEEDERSUBSYSTEM_ARBFF_ONE = 0.13;
+    public static double FEEDERSUBSYSTEM_ARBFF_TWO = 0.17;
+    public static double FEEDERSUBSYSTEM_ARBFF_THREE = 0.20;
+    public static double FEEDERSUBSYSTEM_ARBFF_FOUR = 0.20;
     
     public static Double DRIVE_OPEN_LOOP_DEADBAND = 0.04;
     
@@ -240,26 +257,27 @@ public class Config {
     public static FluidConstant<Double> DRIVETRAIN_SENSITIVE_MAX_SPEED = new FluidConstant<>("DrivetrainSensitiveMaxSpeed", 0.2)
             .registerToTable(Config.constantsTable);
 
-    public static int shooterAnalogSensor = robotSpecific(8, 9);
-
     public static FluidConstant<Double> DRIVETRAIN_DEFAULT_MAX_SPEED = new FluidConstant<>("DrivetrainDefaultMaxSpeed", 1.0)
             .registerToTable(Config.constantsTable);
 
-    public static FluidConstant<Double> FEEDERSUBSYSTEM_INCREMENT_TICKS = new FluidConstant<>("IncrementTicks", 1200.0)
+    public static FluidConstant<Double> FEEDERSUBSYSTEM_INCREMENT_TICKS = new FluidConstant<>("IncrementTicks", 8200.0)
             .registerToTable(Config.constantsTable);
     //Max distance at which the robot knows a ball is at the indexer
     public static FluidConstant<Integer> FEEDERSUBSYSTEM_IR_MAX_DISTANCE = new FluidConstant<>("IrMaxDistance", 0)
                 .registerToTable(Config.constantsTable);
-    public static FluidConstant<Double> FEEDERSUBSYSTEM_P = new FluidConstant<>("FeederSubsystemP", 0.1)
+    public static FluidConstant<Double> FEEDERSUBSYSTEM_P = new FluidConstant<>("FeederSubsystemP", 0.8)
                 .registerToTable(Config.constantsTable);
-    public static FluidConstant<Double> FEEDERSUBSYSTEM_I = new FluidConstant<>("FeederSubsystemI", 0.0)
+    public static FluidConstant<Double> FEEDERSUBSYSTEM_I = new FluidConstant<>("FeederSubsystemI", 0.001)
                 .registerToTable(Config.constantsTable);
-    public static FluidConstant<Double> FEEDERSUBSYSTEM_D = new FluidConstant<>("FeederSubsystemD", 0.05)
+    public static FluidConstant<Double> FEEDERSUBSYSTEM_D = new FluidConstant<>("FeederSubsystemD", 8.0)
                 .registerToTable(Config.constantsTable);
-    public static FluidConstant<Double> FEEDERSUBSYSTEM_F = new FluidConstant<>("FeederSubsystemF", 0.0)
+    public static FluidConstant<Double> FEEDERSUBSYSTEM_F = new FluidConstant<>("FeederSubsystemF", 0.2045)
                 .registerToTable(Config.constantsTable);
     //Highest speed the motor could reach
     public static FluidConstant<Double> FEEDERSUBSYSTEM_PEAK_OUTPUT = new FluidConstant<>("FeederSubsystemPeakOutput", 0.35)
+                .registerToTable(Config.constantsTable);
+
+    public static FluidConstant<Integer> FEEDERSUBSYSTEM_IZONE = new FluidConstant<>("FeederSubsystemIZONE", 120)
                 .registerToTable(Config.constantsTable);
     
     /**
