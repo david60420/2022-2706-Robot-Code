@@ -69,7 +69,7 @@ public class SimpleCsvLogger {
      * @param units_fields A set of strings for signal units to write into the file
      * @return 0 on successful log open, -1 on failure
      */
-    public int init(String[] data_fields, String[] units_fields) {
+    public int init(String loggingDataIdentifier, String[] data_fields, String[] units_fields) {
 
         if (log_open) {
             System.out.println("Warning - log is already open!");
@@ -83,7 +83,7 @@ public class SimpleCsvLogger {
             log_write_index = 0;
 
             // Determine a unique file name
-            log_name = output_dir + "log_" + getDateTimeString() + ".csv";
+            log_name = output_dir + "log_" + getDateTimeString() + "_" + loggingDataIdentifier + ".csv";
 
             // Open File
             FileWriter fstream = new FileWriter(log_name, true);

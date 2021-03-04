@@ -34,7 +34,7 @@ public class FeederSubsystem extends ConditionalSubsystemBase {
 
     //IR sensor that monitors the indexer
     private static DigitalInput inputSwitch;
-    // private static DigitalInput outputSwitch;
+    private static DigitalInput outputSwitch;
 
     //How much to shift the feeder wheel when incrementing
     public static FluidConstant<Double> FEEDERSUBSYSTEM_INCREMENT_TICKS = new FluidConstant<>("IncrementTicks", 12_000.0)
@@ -77,7 +77,7 @@ public class FeederSubsystem extends ConditionalSubsystemBase {
 
         //Initialize the IR sensor
         inputSwitch = new DigitalInput(Config.FEEDER_SWITCH_INPUT);
-        // outputSwitch = new DigitalInput(Config.FEEDER_SWITCH_OUTPUT);
+        outputSwitch = new DigitalInput(Config.FEEDER_SWITCH_OUTPUT);
 
         //Configure the talon
         if (checkConditions()){
@@ -105,10 +105,15 @@ public class FeederSubsystem extends ConditionalSubsystemBase {
     }
 
     public static void zeroTalon() {
+       // if (feederTalon.getControlMode().equals(ControlMode.MotionMagic)) {
+        feederTalon.set(ControlMode.MotionMagic, 0);
+        feederTalon.stopMotor();
         feederTalon.getSensorCollection().setQuadraturePosition(0, Config.CAN_TIMEOUT_SHORT);
-        if (feederTalon.getControlMode().equals(ControlMode.MotionMagic)) {
-            feederTalon.set(ControlMode.MotionMagic, 0);
-        }
+        
+        
+        
+        
+        
     }
 
     public static void init() {
@@ -195,17 +200,18 @@ public class FeederSubsystem extends ConditionalSubsystemBase {
      * Check if a ball is on the input side of the feeder
      * @return whether a power cell has reached the indexer or not
      */
-    public boolean isBallAtInput(){
+    public static boolean isBallAtInput(){
         return !inputSwitch.get();
     }
 
     /**
-     * Check if a ball is on the input side of the feeder
-     * @return whether a power cell has reached the indexer or not
+     * Check if a ball is on the output side of the feeder, the
+     * side closest to the shooter
+     * @return whether limit switch was it
      */
-    // public boolean isBallAtOutput(){
-    //     return outputSwitch.get();
-    // }
+    public static boolean isBallAtOutput(){
+        return !outputSwitch.get();
+    }
 
     /**
      * Get the number of balls around the feeder

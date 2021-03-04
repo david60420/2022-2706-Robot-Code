@@ -20,6 +20,7 @@ import frc.robot.nettables.ControlCtrlNetTable;
 import frc.robot.nettables.VisionCtrlNetTable;
 import frc.robot.subsystems.DriveBase2020;
 import frc.robot.subsystems.DriveBaseHolder;
+import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 
 import java.io.PrintWriter;
@@ -151,7 +152,7 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber("PowerCell Distance", VisionCtrlNetTable.distanceToPowerCell.get());
         SmartDashboard.putNumber("Pigeon Yaw", DriveBaseHolder.getInstance().getCurrentAngle());
         if (Config.SHOOTER_MOTOR != -1)
-            SmartDashboard.putBoolean("Limit Switch", !ShooterSubsystem.getInstance().shooterDigitalInput.get());
+            SmartDashboard.putBoolean("Limit Switch", FeederSubsystem.isBallAtOutput());
 
         CommandScheduler.getInstance().run();
 

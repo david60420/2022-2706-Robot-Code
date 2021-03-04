@@ -43,6 +43,7 @@ public class PollLimitSwitch extends CommandBase {
 	@Override
 	public void execute() {
 		if (m_limitSwitchActive.get()) {
+			this.cancel();
 			m_commandToSchedule.schedule();
 		}
 

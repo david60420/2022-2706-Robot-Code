@@ -293,19 +293,20 @@ public class DriveBase2020 extends DriveBase {
             stopMotors();
         }
     }
-
+    int temp = 0;
     @Override
     public void periodic() {
         odometry.update(Rotation2d.fromDegrees(getCurrentAngle()), getLeftPosition(), getRightPosition());
+        
 
         leftEncoder.setNumber(getLeftPosition());
         rightEncoder.setNumber(getRightPosition());
 
         Pose2d pose = getPose();
-
         currentX.setNumber(pose.getX());
         currentY.setNumber(pose.getY());
         currentAngle.setNumber(pose.getRotation().getDegrees());
+
 
     }
 
@@ -330,6 +331,7 @@ public class DriveBase2020 extends DriveBase {
         //     // Robot.haltRobot("PIGEON WAS RESET BUT SHOWED ERROR OF > 5 DEGREES MEANING RESET FAILED");
         // }
 
+        odometry.resetPosition(newPose, Rotation2d.fromDegrees(getCurrentAngle()));
         odometry.resetPosition(newPose, Rotation2d.fromDegrees(getCurrentAngle()));
     }
 

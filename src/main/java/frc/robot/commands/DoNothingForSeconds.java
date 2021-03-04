@@ -45,7 +45,5 @@ public class DoNothingForSeconds extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         m_timer.stop();
-        System.out.println("DO NOTHING FOR SECONDS HAS STOPPED        WAS INTERRUPTED? -> " + interrupted);
-
     }
 }

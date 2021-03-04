@@ -17,6 +17,7 @@ public class IndexBall extends CommandBase {
 	boolean isDone;
 
 	boolean maxBalls;
+	boolean outputSwitchPressed;
 
 	private final boolean setTalonPosistionEveryCycle = true;
 	
@@ -36,22 +37,33 @@ public class IndexBall extends CommandBase {
 		int currentPosition = (int) feeder.getCurrentPosition();
 		targetPositon = currentPosition + incrementTicks;
 
-		feeder.setFeederPosistion(targetPositon);
-
 		reversing = false;
 		isDone = false;
 
 		if (feeder.getBallsAroundFeeder() >= Config.FEEDER_MAX_BALLS) {
 			maxBalls = true;
 			this.cancel();
+			return;
+		} else if (FeederSubsystem.isBallAtOutput()) {
+			outputSwitchPressed = true;
+			this.cancel();
+			return;
 		}
-		System.out.println("____________________________________________________-");
+
+		maxBalls = false;
+		outputSwitchPressed = false;
+		feeder.setFeederPosistion(targetPositon);
+		
 	}
 
 	// Called every time the scheduler runs while the command is scheduled.
 	@Override
 	public void execute() {
 		if (maxBalls == true) {
+			isDone = true;
+			return;
+		} else if (FeederSubsystem.isBallAtOutput()) {
+			outputSwitchPressed = true;
 			isDone = true;
 			return;
 		}
@@ -73,7 +85,6 @@ public class IndexBall extends CommandBase {
 			// feeder.setFeederPosistion(targetPositon - incrementTicks);
 			// reversing = true;
 		} else if (setTalonPosistionEveryCycle) {
-			System.out.println("CurrentPos is " + currentPosition + ", targetPos is " + targetPositon);
 			feeder.setFeederPosistion(targetPositon);
 		}
 
@@ -82,8 +93,13 @@ public class IndexBall extends CommandBase {
 	// Called once the command ends or is interrupted.
 	@Override
 	public void end(boolean interrupted) {
-		if (reversing == false) {
-			feeder.setBallsAroundFeeder(feeder.getBallsAroundFeeder()+1);
+		if (reversing == false && maxBalls == false && outputSwitchPressed == false) {
+			feeder.setBallsAroundFeeder(feeder.getBallsAroundFeeder() + 1);
+		}
+
+		if (outputSwitchPressed || FeederSubsystem.isBallAtOutput()) {
+			feeder.setFeederPosistion((int) feeder.getCurrentPosition());
+			feeder.stopFeeder();
 		}
 	}
 

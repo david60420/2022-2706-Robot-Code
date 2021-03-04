@@ -69,6 +69,7 @@ public class RamseteCommandMerge extends CommandBase {
 
     // USB Logger
     private SimpleCsvLogger usbLogger;
+    private String loggingDataIdentifier;
 
     /**
      * Constructs a new RamseteCommand that, when executed, will follow the provided
@@ -78,7 +79,7 @@ public class RamseteCommandMerge extends CommandBase {
      *
      * @param trajectory The trajectory to follow.
      */
-    public RamseteCommandMerge(Trajectory trajectory) {
+    public RamseteCommandMerge(Trajectory trajectory, String loggingDataIdentifier) {
         m_trajectory = requireNonNullParam(trajectory, "trajectory", "RamseteCommandMerge");
 
         m_driveSubsystem = DriveBaseHolder.getInstance();
@@ -92,6 +93,7 @@ public class RamseteCommandMerge extends CommandBase {
         addRequirements(m_driveSubsystem);
 
         usbLogger = new SimpleCsvLogger();
+        this.loggingDataIdentifier = loggingDataIdentifier;
 
         var table = NetworkTableInstance.getDefault().getTable("RamseteAuto");
         xError = table.getEntry("xError");
@@ -167,8 +169,11 @@ public class RamseteCommandMerge extends CommandBase {
                 currentPose.getTranslation().getY(), currentPose.getRotation().getDegrees(),
                 poseError.getTranslation().getX(), poseError.getTranslation().getY(),
                 poseError.getRotation().getDegrees(), leftSpeedSetpoint, rightSpeedSetpoint, measuredVelocities[0],
-                measuredVelocities[1], leftAcceleration, rightAcceleration, targetPose.getTranslation().getX(),
+                measuredVelocities[1], leftFeedforward, rightFeedforward, 
+                leftAcceleration, rightAcceleration, targetPose.getTranslation().getX(),
                 targetPose.getTranslation().getY(), targetPose.getRotation().getDegrees());
+
+    
     }
 
     @Override
@@ -209,12 +214,12 @@ public class RamseteCommandMerge extends CommandBase {
      */
     public void startLogging() {
         // See Spreadsheet link at top
-        usbLogger.init(new String[] { "TrajectoryTime", "stateX", "stateY", "stateRot", //
+        usbLogger.init(loggingDataIdentifier, new String[] { "TrajectoryTime", "stateX", "stateY", "stateRot", //
                 "stateVel", "stateAccel", "stateCurv", //
                 "currentX", "currentY", "currentRot", //
                 "errorX", "errorY", "errorRot", //
                 "cmdLeftVel", "cmdRightVel", "measLeftVel", "measRightVel", //
-                "leftFF", "rightFF", "leftMotorOutput", "rightMotorOutput", //
+                "leftFF", "rightFF", //
                 "leftSetpointAccel", "rightSetpointAccel", //
                 "targetX", "targetY", "targetRot" },
                 new String[] { "s", "m", "m", "deg", //
@@ -222,7 +227,7 @@ public class RamseteCommandMerge extends CommandBase {
                         "m", "m", "deg", //
                         "m", "m", "deg", //
                         "m/s", "m/s", "m/s", "m/s", //
-                        "%", "%", "volts", "volts", //
+                        "%", "%",  //
                         "m/s/s", "m/s/s", //
                         "m", "m", "deg" });
     }

@@ -16,7 +16,10 @@ import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
+import edu.wpi.first.wpilibj.trajectory.constraint.MaxVelocityConstraint;
+import edu.wpi.first.wpilibj.trajectory.constraint.RectangularRegionConstraint;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
@@ -133,9 +136,9 @@ public class RobotContainer {
 
 
         // Set default command of feeder to index when limit is pressed
-        Command indexFeeder = new IndexBall();
-        Command pollInputSwitch = new PollLimitSwitch(indexFeeder, FeederSubsystem.getInstance(), FeederSubsystem.getInstance()::isBallAtInput);
-        FeederSubsystem.getInstance().setDefaultCommand(pollInputSwitch);
+        Command indexFeeder = new IndexBall().andThen(new DoNothingForSeconds(1.5));
+        Command pollInputSwitch = new PollLimitSwitch(indexFeeder, FeederSubsystem.getInstance(), FeederSubsystem::isBallAtInput);
+        FeederSubsystem.getInstance().setDefaultCommand(pollInputSwitch); 
     }
 
     /**
@@ -154,7 +157,7 @@ public class RobotContainer {
         logger.info("Selectors: " + selectorOne);
 
         if (Config.hasSelectorSwitches == false) {
-            selectorOne = 5;
+            selectorOne = 9;
             logger.info("No Selector Switches - Forced Id: " + selectorOne);
         }
 
@@ -183,7 +186,7 @@ public class RobotContainer {
                 new Pose2d(), new Pose2d(2.5, -0.5, Rotation2d.fromDegrees(0))), 
                 Config.trajectoryConfig.setStartVelocity(0).setEndVelocity(0).setReversed(false));
 
-            return resetOdometry.andThen(new RamseteCommandMerge(trajectory));
+            return resetOdometry.andThen(new RamseteCommandMerge(trajectory, "R4-SingleTraj"));
 
         } else if (selectorOne == 5) {
 
@@ -201,11 +204,12 @@ public class RobotContainer {
 
             return new SequentialCommandGroup(
                 new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d(2.8, 1.7, Rotation2d.fromDegrees(-24)))),
+                new InstantCommand(() -> FeederSubsystem.getInstance().setBallsAroundFeeder(0)),
                 new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.5, 7)),
-                new ParallelRaceGroup(new AutoIntakeCommand(), new RamseteCommandMerge(trajectory1)),
-                new RamseteCommandMerge(trajectory2),
+                new ParallelRaceGroup(new AutoIntakeCommand(), new RamseteCommandMerge(trajectory1, "R5FullR-1")),
+                new RamseteCommandMerge(trajectory2, "R5FullR-2").alongWith(new IndexBall()),
                 new OuterGoalErrorLoop(true, 3.0),
-                new ParallelRaceGroup(new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.5, 8)), new AutoIntakeCommand())
+                new ParallelRaceGroup(new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.7, 8)), new AutoIntakeCommand())
                 
             );
 
@@ -220,12 +224,71 @@ public class RobotContainer {
                 new Pose2d(1.5, 0, new Rotation2d(0))), 
                 VisionPose.getInstance().getTrajConfig(0, 0, false));
 
-            ParallelRaceGroup cmdGroup = new ParallelRaceGroup(new AutoIntakeCommand(), new RamseteCommandMerge(trajDriveForward));
+            ParallelRaceGroup cmdGroup = new ParallelRaceGroup(new AutoIntakeCommand(), new RamseteCommandMerge(trajDriveForward, "R6DriveForward"));
             return resetOdometry.andThen(cmdGroup);
 
         } else if (selectorOne == 7) {
             return new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d(2.8, 1.7, Rotation2d.fromDegrees(-24))));
             // return new OuterGoalErrorLoop(true, 3.0);
+
+        } else if (selectorOne == 8) {
+            return new InstantCommand(() -> FeederSubsystem.getInstance().setBallsAroundFeeder(0));
+        } else if (selectorOne == 9) {
+
+            Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                new Pose2d(0, 0, Rotation2d.fromDegrees(0)), // A
+                new Pose2d(1.7, 0, Rotation2d.fromDegrees(0))), // B
+                VisionPose.getInstance().getTrajConfig(0, 0, false)
+            );
+
+            Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
+                new Pose2d(1.7, 0, Rotation2d.fromDegrees(0)), // B
+                new Pose2d(0.5, -0.72, Rotation2d.fromDegrees(90)), // B'
+                new Pose2d(1.29, -1.3, Rotation2d.fromDegrees(171))),  // C
+                VisionPose.getInstance().getTrajConfig(0, 0, true)
+            );
+
+            Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(List.of(
+                new Pose2d(1.29, -1.3, Rotation2d.fromDegrees(171)), // C
+                new Pose2d(0.0, -0.3, Rotation2d.fromDegrees(180)), // C'
+                new Pose2d(-1.5, 0.05, Rotation2d.fromDegrees(160))), // D
+                new TrajectoryConfig(Config.kMaxSpeedMetersPerSecond, Config.kMaxAccelerationMetersPerSecondSquared)
+                    .setKinematics(Config.kDriveKinematics).addConstraint(Config.autoVoltageConstraint)
+                    .addConstraint(new RectangularRegionConstraint(new Translation2d(-3, 0.5), new Translation2d(-0.5, -2.0), new MaxVelocityConstraint(0.8)))   // VisionPose.getInstance().getTrajConfig(0, 0, false)
+            );
+
+            Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(List.of(
+                new Pose2d(-1.5, 0.05, Rotation2d.fromDegrees(160)), // D
+                new Pose2d(-0.62, -0.16, Rotation2d.fromDegrees(-150))), // E
+                VisionPose.getInstance().getTrajConfig(0, 0, true)
+            );
+            
+            Trajectory trajectory5 = TrajectoryGenerator.generateTrajectory(List.of(
+                new Pose2d(-0.62, -0.16, Rotation2d.fromDegrees(-150)),
+                new Pose2d(-1.48, -0.38, Rotation2d.fromDegrees(-160))),
+                VisionPose.getInstance().getTrajConfig(0, 0, false)
+            );
+
+            Trajectory trajectory6 = TrajectoryGenerator.generateTrajectory(List.of(
+                new Pose2d(-1.48, -0.38, Rotation2d.fromDegrees(-160)),
+                new Pose2d(-0.34, -0.52, Rotation2d.fromDegrees(150))),
+                VisionPose.getInstance().getTrajConfig(0, 0, true)
+            );
+
+            return new SequentialCommandGroup(
+                new InstantCommand(DriveBaseHolder.getInstance()::setBrakeMode),
+                new ParallelRaceGroup(new RamseteCommandMerge(trajectory1, "IRAHr2-T1"), new AutoIntakeCommand()),
+                new RamseteCommandMerge(trajectory2, "IRAHr2-T2"),
+                new OuterGoalErrorLoop(true, 3.0),
+                new SpinUpShooterWithTime((int) Config.RPM.get()+300, 7).alongWith(new RunFeederCommandWithTime(-0.5, 7)),
+                new ParallelRaceGroup(new RamseteCommandMerge(trajectory3, "IRAHr3-T2"), new AutoIntakeCommand()),
+                new RamseteCommandMerge(trajectory4, "IRAHr4-T2"),
+                new ParallelRaceGroup(new RamseteCommandMerge(trajectory5, "IRAHr5-T2"), new AutoIntakeCommand()),
+                new RamseteCommandMerge(trajectory6, "IRAHr6-T2"),
+
+                new OuterGoalErrorLoop(true, 3.0),
+                new SpinUpShooterWithTime((int) Config.RPM.get()+700, 7).alongWith(new RunFeederCommandWithTime(-0.5, 7))
+            );
 
         }
 

@@ -123,7 +123,7 @@ public class Config {
 
     public static int FEEDER_SWITCH_INPUT = robotSpecific(9, 9, -1, -1);
     public static int FEEDER_SWITCH_OUTPUT = robotSpecific(8, 8, -1, -1);
-    public static int FEEDER_MAX_BALLS = 4;
+    public static int FEEDER_MAX_BALLS = 3;
     public static int FEEDERSUBSYSTEM_INDEX_ALLOWABLE_ERROR = 50; 
     public static int FEEDERSUBSYSTEM_POS_PAST_SWITCH = 800;
 
@@ -212,11 +212,11 @@ public class Config {
     public static DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackWidth);
 
     // Ramsete Max Velocity and max acceleration
-    public static double kMaxSpeedMetersPerSecond = 1.2;
+    public static double kMaxSpeedMetersPerSecond = 1.5;
     public static double kMaxAccelerationMetersPerSecondSquared = 1.0; 
 
     // TrajectoryConfig & TrajectoryConstraint - needed to construct a trajectory
-    private static TrajectoryConstraint autoVoltageConstraint = new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(Config.ksVolts,
+    public static TrajectoryConstraint autoVoltageConstraint = new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(Config.ksVolts,
             Config.kvVoltSecondsPerMeter, Config.kaVoltSecondsSquaredPerMeter), Config.kDriveKinematics, 10);
 
     public static TrajectoryConfig trajectoryConfig = new TrajectoryConfig(kMaxSpeedMetersPerSecond, kMaxAccelerationMetersPerSecondSquared)
@@ -260,7 +260,7 @@ public class Config {
     public static FluidConstant<Double> DRIVETRAIN_DEFAULT_MAX_SPEED = new FluidConstant<>("DrivetrainDefaultMaxSpeed", 1.0)
             .registerToTable(Config.constantsTable);
 
-    public static FluidConstant<Double> FEEDERSUBSYSTEM_INCREMENT_TICKS = new FluidConstant<>("IncrementTicks", 8200.0)
+    public static FluidConstant<Double> FEEDERSUBSYSTEM_INCREMENT_TICKS = new FluidConstant<>("IncrementTicks", 13000.0)
             .registerToTable(Config.constantsTable);
     //Max distance at which the robot knows a ball is at the indexer
     public static FluidConstant<Integer> FEEDERSUBSYSTEM_IR_MAX_DISTANCE = new FluidConstant<>("IrMaxDistance", 0)
