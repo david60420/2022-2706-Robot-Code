@@ -64,7 +64,7 @@ public class DriveWithTime extends CommandBase {
   @Override
   public void end(boolean interrupted) {
     // If using the withTimeout(double seconds); as the timer, return here.
-    DriveBase2020.getInstance().stopMotors();
+    DriveBaseHolder.getInstance().stopMotors();
   }
 
 
