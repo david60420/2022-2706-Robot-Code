@@ -22,6 +22,8 @@ import edu.wpi.first.wpilibj.trajectory.constraint.MaxVelocityConstraint;
 import edu.wpi.first.wpilibj.trajectory.constraint.RectangularRegionConstraint;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -30,6 +32,7 @@ import frc.robot.commands.*;
 import frc.robot.config.Config;
 import frc.robot.sensors.AnalogSelector;
 import frc.robot.subsystems.*;
+import frc.robot.commands.ramseteAuto.PassThroughWaypoint;
 import frc.robot.commands.ramseteAuto.RamseteCommandMerge;
 import frc.robot.commands.ramseteAuto.VisionPose;
 
@@ -125,20 +128,26 @@ public class RobotContainer {
         moveToOuterPort = new TurnToOuterPortCommand(true, 3.0, 2.0);
         new JoystickButton(driverStick, XboxController.Button.kA.value).whenHeld(moveToOuterPort, true);
 
-        reverseArmManually = new MoveArmManuallyCommand(-0.35);
-        new JoystickButton(driverStick, XboxController.Button.kX.value).whenHeld(reverseArmManually);
+        if (Config.ARM_TALON != -1) {
+            reverseArmManually = new MoveArmManuallyCommand(-0.35);
+            new JoystickButton(driverStick, XboxController.Button.kX.value).whenHeld(reverseArmManually);
 
-        moveArm = new MoveArmManuallyCommand(10);
-        new JoystickButton(driverStick, XboxController.Button.kY.value).whenHeld(moveArm);
+            moveArm = new MoveArmManuallyCommand(10);
+            new JoystickButton(driverStick, XboxController.Button.kY.value).whenHeld(moveArm);
+        }
 
         sensitiveDriving = new SensitiveDriverControl(driverStick);
         new JoystickButton(driverStick, XboxController.Button.kBumperLeft.value).whenHeld(sensitiveDriving);
 
+        Command resetHeading = new InstantCommand(() -> DriveBaseHolder.getInstance().resetHeading(Rotation2d.fromDegrees(0)));
+        new JoystickButton(driverStick, XboxController.Button.kStart.value).whenActive(resetHeading);
 
-        // Set default command of feeder to index when limit is pressed
-        Command indexFeeder = new IndexBall().andThen(new DoNothingForSeconds(1.5));
-        Command pollInputSwitch = new PollLimitSwitch(indexFeeder, FeederSubsystem.getInstance(), FeederSubsystem::isBallAtInput);
-        FeederSubsystem.getInstance().setDefaultCommand(pollInputSwitch); 
+        if (Config.FEEDER_SUBSYSTEM_TALON != -1) {
+            // Set default command of feeder to index when limit is pressed
+            Command indexFeeder = new IndexBall().andThen(new DoNothingForSeconds(1.5));
+            Command pollInputSwitch = new PollLimitSwitch(indexFeeder, FeederSubsystem.getInstance(), FeederSubsystem::isBallAtInput);
+            FeederSubsystem.getInstance().setDefaultCommand(pollInputSwitch); 
+        }
     }
 
     /**
@@ -157,7 +166,7 @@ public class RobotContainer {
         logger.info("Selectors: " + selectorOne);
 
         if (Config.hasSelectorSwitches == false) {
-            selectorOne = 9;
+            selectorOne = 10;
             logger.info("No Selector Switches - Forced Id: " + selectorOne);
         }
 
@@ -210,7 +219,6 @@ public class RobotContainer {
                 new RamseteCommandMerge(trajectory2, "R5FullR-2").alongWith(new IndexBall()),
                 new OuterGoalErrorLoop(true, 3.0),
                 new ParallelRaceGroup(new SpinUpShooterWithTime((int) Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.7, 8)), new AutoIntakeCommand())
-                
             );
 
 
@@ -290,6 +298,19 @@ public class RobotContainer {
                 new SpinUpShooterWithTime((int) Config.RPM.get()+700, 7).alongWith(new RunFeederCommandWithTime(-0.5, 7))
             );
 
+        } else if (selectorOne == 10) {
+            Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(
+                new Pose2d(), 
+                List.of(new Translation2d(1, -0.4)),
+                new Pose2d(1.5, -1.7, Rotation2d.fromDegrees(-45)),
+                VisionPose.getInstance().getTrajConfig(0, 0, VisionPose.VisionType.TPracticeTarget));
+
+            RamseteCommandMerge ramsete = new RamseteCommandMerge(trajectory1, "PassThruWaypointTest");
+
+            // return ramsete;
+            return new ParallelCommandGroup(ramsete,
+                    new PassThroughWaypoint(ramsete, VisionPose.VisionType.TPracticeTarget, 8, trajectory1.sample(trajectory1.getTotalTimeSeconds()).poseMeters, 0),
+                    new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d()))); 
         }
 
 

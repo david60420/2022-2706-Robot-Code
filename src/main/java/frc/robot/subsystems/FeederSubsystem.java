@@ -75,9 +75,12 @@ public class FeederSubsystem extends ConditionalSubsystemBase {
         //Initialize the talon
         feederTalon = new WPI_TalonSRX(Config.FEEDER_SUBSYSTEM_TALON);
 
-        //Initialize the IR sensor
-        inputSwitch = new DigitalInput(Config.FEEDER_SWITCH_INPUT);
-        outputSwitch = new DigitalInput(Config.FEEDER_SWITCH_OUTPUT);
+        //Initialize the limit switches
+        if (Config.FEEDER_SWITCH_INPUT != -1)
+            inputSwitch = new DigitalInput(Config.FEEDER_SWITCH_INPUT);
+
+        if (Config.FEEDER_SWITCH_OUTPUT != -1)
+            outputSwitch = new DigitalInput(Config.FEEDER_SWITCH_OUTPUT);
 
         //Configure the talon
         if (checkConditions()){

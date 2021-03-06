@@ -183,7 +183,7 @@ public class Config {
     public static NetworkTable constantsTable = NetworkTableInstance.getDefault().getTable("constants");
 
     // Vision Table Constants
-    public static String VISION_TABLE_NAME_POWERCELL = "MergeVisionPi20";
+    public static String VISION_TABLE_NAME_POWERCELL = "MergeVisionPipelinePi20";
     public static String VISION_TABLE_NAME_OUTERPORT = "MergeVisionPipelinePi21";
     public static String DISTANCE_POWERCELL     = "DistanceToPowerCell";
     public static String DISTANCE_OUTER_PORT    = "DistanceToOuterPort";
@@ -212,8 +212,8 @@ public class Config {
     public static DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackWidth);
 
     // Ramsete Max Velocity and max acceleration
-    public static double kMaxSpeedMetersPerSecond = 1.5;
-    public static double kMaxAccelerationMetersPerSecondSquared = 1.0; 
+    public static double kMaxSpeedMetersPerSecond = 1.0;
+    public static double kMaxAccelerationMetersPerSecondSquared = 0.5; 
 
     // TrajectoryConfig & TrajectoryConstraint - needed to construct a trajectory
     public static TrajectoryConstraint autoVoltageConstraint = new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(Config.ksVolts,

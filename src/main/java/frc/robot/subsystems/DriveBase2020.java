@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
+import com.ctre.phoenix.motorcontrol.Faults;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.IMotorController;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -20,8 +21,9 @@ import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import frc.robot.Robot;
+import frc.robot.commands.ramseteAuto.VisionPose;
+import frc.robot.commands.ramseteAuto.VisionPose.VisionType;
 import frc.robot.config.Config;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.util.logging.Logger;
@@ -321,6 +323,9 @@ public class DriveBase2020 extends DriveBase {
         // currentY.setNumber(pose.getY());
         // currentAngle.setNumber(pose.getRotation().getDegrees());
         }
+
+        // System.out.println("VISION TARGET: " + VisionPose.getInstance().getTargetTranslation(VisionType.TPracticeTarget)); 
+
 
     }
 

@@ -1,5 +1,7 @@
 package frc.robot.commands.ramseteAuto;
 
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
@@ -7,6 +9,7 @@ import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import frc.robot.config.Config;
 import frc.robot.nettables.VisionCtrlNetTable;
+import frc.robot.subsystems.DriveBase;
 import frc.robot.subsystems.DriveBaseHolder;
 
 public class VisionPose {
@@ -21,17 +24,25 @@ public class VisionPose {
   
         return single_instance; 
     }
+    NetworkTableEntry tTargetDistance;
+    NetworkTableEntry tTargetYaw;
 
     VisionData coneMarkerData;
     private VisionPose() {
         coneMarkerData = new VisionData(VisionType.MiddleOfCones, backDriverCamera);
+
+        var table = NetworkTableInstance.getDefault().getTable("Vision2017"); 
+        tTargetDistance = table.getEntry("tapeDistance");
+        tTargetYaw = table.getEntry("tapeYaw");
     }
+
+    
 
     // Camera Poses from centre
     final Pose2d backDriverCamera = new Pose2d(0, 0, Rotation2d.fromDegrees(0)); // <- needs to be filled out
 
 
-    enum VisionType {
+    public enum VisionType {
         // 2021 game
         MiddleOfCones(1),
         WallTapeTarget(2), 
@@ -71,7 +82,7 @@ public class VisionPose {
                 break;
 
             case TPracticeTarget:
-
+                VisionCtrlNetTable.setTapeMode(); 
                 break;
             
             
@@ -114,12 +125,15 @@ public class VisionPose {
     }
 
     /**
-     * Returns a Pose relative to field of a given vision target
+     * Returns a Pose relative to field of a given vision target.
+     * If vision type can only calculate translation it will return
+     * a pose with a rotation of 0. 
      * 
-     * Called Outside of VisionPose
+     * Null means no calculation was possible
      */
     public Pose2d getTargetPose(VisionType visionType) {
         Pose2d relativePose = targetPose(visionType);
+        if (relativePose == null) return null;
 
         Pose2d fieldPose = transformPoseToField(relativePose);
         return fieldPose; 
@@ -131,7 +145,10 @@ public class VisionPose {
      * Called Outside of VisionPose
      */
     public Translation2d getTargetTranslation(VisionType visionType) {
-        Translation2d targetTranslation = targetPose(visionType).getTranslation();
+        Pose2d pose = targetPose(visionType);
+        if (pose == null) return null;
+
+        Translation2d targetTranslation = pose.getTranslation();
 
         Translation2d fieldTranslation = transformTranslationToField(targetTranslation);
         return fieldTranslation;
@@ -151,7 +168,10 @@ public class VisionPose {
                 break;
 
             case TPracticeTarget:
-                relativePose = new Pose2d(calcTPracticeTarget(), new Rotation2d(0));
+                Translation2d relativeTranslation = calcTPracticeTarget();
+                if (relativeTranslation == null) return null;
+                
+                relativePose = new Pose2d(relativeTranslation, new Rotation2d(0));
                 break;
 
             }
@@ -170,9 +190,9 @@ public class VisionPose {
     }
 
     private Translation2d transformTranslationToField(Translation2d relativeTranslation) {
-        Rotation2d rotateToField = DriveBaseHolder.getInstance().getOdometryHeading().times(-1);
         Pose2d odometryPose = DriveBaseHolder.getInstance().getPose();
-        Translation2d fieldTranslation = odometryPose.getTranslation().rotateBy(rotateToField);
+        Translation2d fieldTranslation = relativeTranslation.rotateBy(odometryPose.getRotation());
+        fieldTranslation = odometryPose.getTranslation().plus(fieldTranslation);
         return fieldTranslation;
     }
 
@@ -232,8 +252,11 @@ public class VisionPose {
     }
 
     private Translation2d calcTPracticeTarget() {
-        double distanceToTarget = 0;
-        double angleAtRobot = 0; 
+        // double distanceToTarget = VisionCtrlNetTable.distanceToPowerCell.get();
+        // double angleAtRobot = VisionCtrlNetTable.yawToPowerCell.get();
+
+        double distanceToTarget = tTargetDistance.getDouble(-99);
+        double angleAtRobot = tTargetYaw.getDouble(-99);
 
         if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99)
             return null;
@@ -245,8 +268,26 @@ public class VisionPose {
         Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
         Translation2d translation = new Translation2d(distanceToTarget, angle);
 
-        translation = transformTranslationOffWall(translation, 3, DriveBaseHolder.getInstance().getOdometryHeading());
-    
+        
+        translation = transformTranslationOffWall(translation, -1.5, DriveBaseHolder.getInstance().getOdometryHeading());
+
         return translation;
+    }
+
+
+    public void test() {
+        DriveBase drive = DriveBaseHolder.getInstance();
+
+        Translation2d relative = new Translation2d(1,0);
+        drive.resetPose(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
+
+        // System.out.printf("\n\n\n");
+        // System.out.println("Odometry: " + drive.getPose());
+        // System.out.printf("Rel: %s, Field: %s \n", relative.toString(), transformTranslationToField(relative));
+        // System.out.printf("\n\n\n");
+
+
+        System.out.println("Vision Pose: " + getTargetTranslation(VisionType.TPracticeTarget));
+
     }
 }

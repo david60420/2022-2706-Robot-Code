@@ -15,9 +15,12 @@ import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commands.ramseteAuto.VisionPose;
+import frc.robot.commands.ramseteAuto.VisionPose.VisionType;
 import frc.robot.config.Config;
 import frc.robot.nettables.ControlCtrlNetTable;
 import frc.robot.nettables.VisionCtrlNetTable;
+import frc.robot.subsystems.DriveBase;
 import frc.robot.subsystems.DriveBase2020;
 import frc.robot.subsystems.DriveBaseHolder;
 import frc.robot.subsystems.FeederSubsystem;
@@ -131,7 +134,7 @@ public class Robot extends TimedRobot {
 
         DriverStation.getInstance().silenceJoystickConnectionWarning(true);
         
-
+        VisionPose.getInstance().initVision(VisionPose.VisionType.TPracticeTarget);
     }
 
     /**
@@ -221,6 +224,10 @@ public class Robot extends TimedRobot {
 
         //set teleop mode to false
         bFromTeleMode = false;
+
+        VisionPose.getInstance().test();
+
+
     }
 
     /**

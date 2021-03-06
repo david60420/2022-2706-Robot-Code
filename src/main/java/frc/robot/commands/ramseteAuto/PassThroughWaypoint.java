@@ -86,6 +86,7 @@ public class PassThroughWaypoint extends CommandBase {
         if(trajectory != null){
           //Give the ramsete command the updated trajectory
           ramseteCommand.setNewTrajectory(trajectory);
+          System.out.println("wayPointTranslation is " + waypointTranslation.toString());
         }
 
       }
