@@ -305,12 +305,13 @@ public class DriveBase2020 extends DriveBase {
             stopMotors();
         }
     }
-    int temp = 0;
+
     @Override
     public void periodic() {
-        odometry.update(Rotation2d.fromDegrees(getCurrentAngle()), getLeftPosition(), getRightPosition());
-        
+        if (hasPigeon()) {
 
+            odometry.update(Rotation2d.fromDegrees(getCurrentAngle()), getLeftPosition(), getRightPosition());
+        
         // leftEncoder.setNumber(getLeftPosition());
         // rightEncoder.setNumber(getRightPosition());
 
@@ -318,7 +319,7 @@ public class DriveBase2020 extends DriveBase {
         // currentX.setNumber(pose.getX());
         // currentY.setNumber(pose.getY());
         // currentAngle.setNumber(pose.getRotation().getDegrees());
-
+        }
 
     }
 
@@ -327,12 +328,28 @@ public class DriveBase2020 extends DriveBase {
         return odometry.getPoseMeters();
     }
 
+    /**
+     * This method will return the heading from odometry
+     * 
+     * Odometry keeps track of the gyro heading and in relation to
+     * the value it was reset to using an offset so it's important to ask
+     * the odometry for the rotation instead of directly from the gyro.
+     * 
+     * @param Rotation2d The heading. Use .getDegrees() for degrees.
+     */
+    @Override
+    public Rotation2d getOdometryHeading() {
+        return getPose().getRotation();
+    }
+
     @Override
     public void resetPose(Pose2d newPose) {
         ErrorCode leftError = leftMaster.setSelectedSensorPosition(0, Config.TALON_PRIMARY_PID, Config.CAN_TIMEOUT_LONG);
         ErrorCode rightError = rightMaster.setSelectedSensorPosition(0, Config.TALON_PRIMARY_PID, Config.CAN_TIMEOUT_LONG);
             
         logErrorCode(leftError, "DrivetrainLeftMaster", Config.LEFT_FRONT_MOTOR, "setSelectedSensorPosition(0)");
+        logErrorCode(rightError, "DrivetrainRighttMaster", Config.RIGHT_FRONT_MOTOR, "setSelectedSensorPosition(0)");
+
         odometry.resetPosition(newPose, Rotation2d.fromDegrees(getCurrentAngle()));
     }
 

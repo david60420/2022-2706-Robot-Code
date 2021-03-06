@@ -170,7 +170,7 @@ public class VisionPose {
     }
 
     private Translation2d transformTranslationToField(Translation2d relativeTranslation) {
-        Rotation2d rotateToField = Rotation2d.fromDegrees(DriveBaseHolder.getInstance().getCurrentAngle() *-1);
+        Rotation2d rotateToField = DriveBaseHolder.getInstance().getOdometryHeading().times(-1);
         Pose2d odometryPose = DriveBaseHolder.getInstance().getPose();
         Translation2d fieldTranslation = odometryPose.getTranslation().rotateBy(rotateToField);
         return fieldTranslation;
@@ -245,7 +245,7 @@ public class VisionPose {
         Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
         Translation2d translation = new Translation2d(distanceToTarget, angle);
 
-        translation = transformTranslationOffWall(translation, 3, Rotation2d.fromDegrees(DriveBaseHolder.getInstance().getCurrentAngle()));
+        translation = transformTranslationOffWall(translation, 3, DriveBaseHolder.getInstance().getOdometryHeading());
     
         return translation;
     }

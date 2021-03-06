@@ -69,7 +69,7 @@ public class DrivetrainPIDTurnDelta extends CommandBase {
         this.drivebase = DriveBaseHolder.getInstance();
         addRequirements(this.drivebase);
         pigeonIMU = drivebase.getPigeon();
-        currentAngle = drivebase.getCurrentAngle();
+        currentAngle = drivebase.getOdometryHeading().getDegrees();
         logger.addHandler(Config.logFileHandler);
 
         // Instantiate the timer
@@ -90,7 +90,7 @@ public class DrivetrainPIDTurnDelta extends CommandBase {
     public void initialize() {
 
         //Get the target angle
-        targetAngle = drivebase.getCurrentAngle() + deltaDegree;
+        targetAngle = drivebase.getOdometryHeading().getDegrees() + deltaDegree;
 
         isDone = false;
 
@@ -113,7 +113,7 @@ public class DrivetrainPIDTurnDelta extends CommandBase {
             double currentAngularRate = xyz_dps[2];
 
             //Get current angle
-            currentAngle = drivebase.getCurrentAngle();
+            currentAngle = drivebase.getOdometryHeading().getDegrees();
 
             if (Math.abs(targetAngle - currentAngle) < acceptableError) {
                 isDone = true;

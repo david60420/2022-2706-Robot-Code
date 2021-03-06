@@ -5,6 +5,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.config.Config;
@@ -102,7 +103,7 @@ public abstract class DriveBase extends SubsystemBase {
      * Tries to get the current angle as reported by the pigeon
      * @return The current heading (In degrees) or 0 if there is no pigeon.
      */
-    public final double getCurrentAngle() {
+    protected final double getCurrentAngle() {
         if (!hasPigeon()) return 0d;
         pigeon.getFusedHeading(fusionStatus);
         return fusionStatus.heading;
@@ -175,6 +176,10 @@ public abstract class DriveBase extends SubsystemBase {
 
     public Pose2d getPose() {
         return null; 
+    }
+
+    public Rotation2d getOdometryHeading() {
+        return new Rotation2d();
     }
 
     public void resetPose(Pose2d pose) {

@@ -150,7 +150,7 @@ public class Robot extends TimedRobot {
 
         SmartDashboard.putNumber("Outer Port Yaw", VisionCtrlNetTable.yawToOuterPort.get());
         SmartDashboard.putNumber("PowerCell Distance", VisionCtrlNetTable.distanceToPowerCell.get());
-        SmartDashboard.putNumber("Pigeon Yaw", DriveBaseHolder.getInstance().getCurrentAngle());
+        SmartDashboard.putNumber("Pigeon Yaw", DriveBaseHolder.getInstance().getOdometryHeading().getDegrees());
         if (Config.SHOOTER_MOTOR != -1)
             SmartDashboard.putBoolean("Limit Switch", FeederSubsystem.isBallAtOutput());
 
