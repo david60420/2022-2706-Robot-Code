@@ -111,4 +111,16 @@ public class DriveBasePre2020 extends DriveBase {
         leftRearTalon.follow(leftFrontTalon);
         rightRearTalon.follow(rightFrontTalon);
     }
+
+    @Override
+    public double getMotorCurrent() {
+        return 0.0d;
+    }
+
+    @Override
+    public boolean isMotorLimitActive() {
+        return false;
+    }
+
+
 }

@@ -205,4 +205,9 @@ public abstract class DriveBase extends SubsystemBase {
     public void setActivePIDSlot(int slotId) {
         
     }
+    public abstract double getMotorCurrent();
+
+    public abstract boolean isMotorLimitActive();
+
+    
 }
