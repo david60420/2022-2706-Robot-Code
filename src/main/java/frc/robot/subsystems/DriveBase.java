@@ -163,4 +163,10 @@ public abstract class DriveBase extends SubsystemBase {
     protected void neutralModeUpdated(NeutralMode neutralMode) {
     
     }
+
+    public abstract double getMotorCurrent();
+
+    public abstract boolean isMotorLimitActive();
+
+    
 }
