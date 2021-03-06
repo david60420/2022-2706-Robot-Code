@@ -71,9 +71,7 @@ public class DriveToWaypoint extends CommandBase {
           double averageCurrentVelocity = (measuredVelocities[0] + measuredVelocities[1])/2.0;
 
           //Generate trajectory from current pose to endPose
-          trajectory = TrajectoryGenerator.generateTrajectory(DriveBaseHolder.getInstance().getPose(), 
-                                                              List.of(),
-                                                              endPose2d, 
+          trajectory = TrajectoryGenerator.generateTrajectory(List.of(DriveBaseHolder.getInstance().getPose(), endPose2d),
                                                               visionPoseInst.getTrajConfig(averageCurrentVelocity, endVelocity, visionType));
 
         } catch (Exception e) {
