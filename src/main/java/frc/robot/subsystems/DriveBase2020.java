@@ -184,14 +184,14 @@ public class DriveBase2020 extends DriveBase {
             talonConfig.continuousCurrentLimit = 0;
         }
         
-        // Config all talon settings - returns worst error
+        // Config all talon settings - automatically returns worst error
         ErrorCode leftMasterError = leftMaster.configAllSettings(talonConfig);
         ErrorCode rightMasterError = rightMaster.configAllSettings(talonConfig);
 
         if (!leftMasterError.equals(ErrorCode.OK)) 
-            logErrorCode(leftMasterError, "LeftMaster");
+            logErrorCode(leftMasterError, "DrivetrainLeftMaster", Config.LEFT_FRONT_MOTOR, "configAllSettings");
         if (!rightMasterError.equals(ErrorCode.OK))
-            logErrorCode(rightMasterError, "RightMaster");
+            logErrorCode(rightMasterError, "DrivetrainRightMaster", Config.RIGHT_FRONT_MOTOR, "configAllSettings");
 
         // Config the encoder and check if it worked
         ErrorCode e1 = leftMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
@@ -200,8 +200,8 @@ public class DriveBase2020 extends DriveBase {
         if (e1.value != 0 || e2.value != 0) {
             this.state = DriveBaseState.Degraded;
             logger.severe("DRIVETRAIN ENCODER NOT WORKING - DRIVETRAIN DEGRADED - ONLY DRIVER CONTROLS ACTIVE");
-            logErrorCode(e1, "leftMaster");
-            logErrorCode(e2, "rightMaster");
+            logErrorCode(e1, "DrivetrainLeftMaster", Config.LEFT_FRONT_MOTOR, "configSelectedFeedbackSensor(MagEncoderRelative)");
+            logErrorCode(e2, "DrivetrainRightMaster", Config.RIGHT_FRONT_MOTOR, "configSelectedFeedbackSensor(MagEncoderRelative)");
         }
 
         // Turn on voltage compensation
@@ -223,9 +223,21 @@ public class DriveBase2020 extends DriveBase {
 
     }
 
-    private void logErrorCode(ErrorCode e, String motorName) {
+    /**
+     * Log error code will take a CTRE ErrorCode object.
+     * 
+     * It does nothing if the error code is ok
+     * 
+     * It will log if the error code is bad. It shows the ErrorCode
+     * name, number and category.
+     * 
+     * @param e The error code
+     * @param motorName A name to define which device this code belongs to
+     * @param canID the can id belonging to the device
+     * @param action Name of the method that produced this error
+     */
+    private void logErrorCode(ErrorCode e, String motorName, int canID, String methodName) {
         if (e.equals(ErrorCode.OK)) {
-            System.out.println("error is ok on " + motorName);
             return;
         }
 
@@ -254,10 +266,10 @@ public class DriveBase2020 extends DriveBase {
         else
             errorCategory = "Unknown Category";
 
-        String logString = String.format("%s - %s - %s", motorName, errorCategory, e.name());
+        String logString = String.format("MOTOR: %s, CANID: %d, ERROR NAME: %s, ERROR CATEGORY: %s, PRODUCED BY METHOD: %s", motorName, canID, e.name(), errorCategory, methodName);
 
         // Log the error code as severe
-        logger.severe("DRIVETRAIN TAlON ERROR - " + logString); 
+        logger.severe("CTRE ErrorCode - " + logString); 
         
     }
 
@@ -299,13 +311,13 @@ public class DriveBase2020 extends DriveBase {
         odometry.update(Rotation2d.fromDegrees(getCurrentAngle()), getLeftPosition(), getRightPosition());
         
 
-        leftEncoder.setNumber(getLeftPosition());
-        rightEncoder.setNumber(getRightPosition());
+        // leftEncoder.setNumber(getLeftPosition());
+        // rightEncoder.setNumber(getRightPosition());
 
-        Pose2d pose = getPose();
-        currentX.setNumber(pose.getX());
-        currentY.setNumber(pose.getY());
-        currentAngle.setNumber(pose.getRotation().getDegrees());
+        // Pose2d pose = getPose();
+        // currentX.setNumber(pose.getX());
+        // currentY.setNumber(pose.getY());
+        // currentAngle.setNumber(pose.getRotation().getDegrees());
 
 
     }
@@ -317,21 +329,10 @@ public class DriveBase2020 extends DriveBase {
 
     @Override
     public void resetPose(Pose2d newPose) {
-        // ErrorCode pigeonHeadingSet = pigeon.setFusedHeading(newPose.getRotation().getDegrees(), Config.CAN_TIMEOUT_LONG);
-        // ErrorCode pigeonYawSet = pigeon.setYaw(newPose.getRotation().getDegrees(), Config.CAN_TIMEOUT_LONG);
-
-        leftMaster.setSelectedSensorPosition(0);
-        rightMaster.setSelectedSensorPosition(0);
+        ErrorCode leftError = leftMaster.setSelectedSensorPosition(0, Config.TALON_PRIMARY_PID, Config.CAN_TIMEOUT_LONG);
+        ErrorCode rightError = rightMaster.setSelectedSensorPosition(0, Config.TALON_PRIMARY_PID, Config.CAN_TIMEOUT_LONG);
             
-        // System.out.println("Desired Rot: " + newPose.getRotation().getDegrees() + ", currentHeading: " + getCurrentAngle() + ", ErrorCodeHeading: " + pigeonHeadingSet.name() + ", ErrorCodeYaw: " + pigeonYawSet.name() + ", pigeon states: " + pigeon.getState());
-        // if (pigeonHeadingSet.equals(ErrorCode.OK) == false || pigeonYawSet.equals(ErrorCode.OK) == false) {
-        //     logger.severe("PIGEON FAILED - ERROR CODE NAME IS - " + pigeonHeadingSet.name() + ", YAW ERROR CODE IS: " + pigeonYawSet.name());
-        //     // Robot.haltRobot("RESETING PIGEON FAILED, STOP ROBOT SO RAMSETE DOESN'T DRIVE INTO WALL");
-        // } else if (Math.abs(Math.abs(getCurrentAngle()) - Math.abs(newPose.getRotation().getDegrees())) > 5) {
-        //     // Robot.haltRobot("PIGEON WAS RESET BUT SHOWED ERROR OF > 5 DEGREES MEANING RESET FAILED");
-        // }
-
-        odometry.resetPosition(newPose, Rotation2d.fromDegrees(getCurrentAngle()));
+        logErrorCode(leftError, "DrivetrainLeftMaster", Config.LEFT_FRONT_MOTOR, "setSelectedSensorPosition(0)");
         odometry.resetPosition(newPose, Rotation2d.fromDegrees(getCurrentAngle()));
     }
 
