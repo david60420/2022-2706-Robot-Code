@@ -186,6 +186,10 @@ public abstract class DriveBase extends SubsystemBase {
 
     }
 
+    public void resetHeading(Rotation2d newHeading) {
+        
+    }
+
     public void tankDriveVelocities(double leftVel, double rightVel, double leftFF, double rightFF) {
 
     }

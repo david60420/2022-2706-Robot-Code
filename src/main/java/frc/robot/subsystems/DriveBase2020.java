@@ -17,6 +17,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import frc.robot.Robot;
 import frc.robot.config.Config;
@@ -323,6 +324,16 @@ public class DriveBase2020 extends DriveBase {
 
     }
 
+    /**
+     * Returns the a Pose2d of the current robot location
+     * 
+     * Odometry calcules a new pose every robot cycle and stores
+     * the value so this method is only reading the stored value.
+     * This means we only do 1 hardware read every cycle instead of 
+     * many things calling hardware redunantly
+     * 
+     * @param Pose2d the current pose of the robot
+     */
     @Override 
     public Pose2d getPose() { 
         return odometry.getPoseMeters();
@@ -335,7 +346,7 @@ public class DriveBase2020 extends DriveBase {
      * the value it was reset to using an offset so it's important to ask
      * the odometry for the rotation instead of directly from the gyro.
      * 
-     * @param Rotation2d The heading. Use .getDegrees() for degrees.
+     * @param Rotation2d The heading. Rotation2d has a .getDegrees() method.
      */
     @Override
     public Rotation2d getOdometryHeading() {
@@ -351,6 +362,22 @@ public class DriveBase2020 extends DriveBase {
         logErrorCode(rightError, "DrivetrainRighttMaster", Config.RIGHT_FRONT_MOTOR, "setSelectedSensorPosition(0)");
 
         odometry.resetPosition(newPose, Rotation2d.fromDegrees(getCurrentAngle()));
+    }
+
+    /**
+     * Resets the heading of the robot to a desired value
+     * 
+     * To construct a Rotation2d from degrees, use Rotation2d.fromDegrees(deg)
+     * Otherwise the constructor uses radians, new Rotation2d(rad)
+     * 
+     * If also changing odometry x and y, just use resetPose
+     * 
+     * @param newHeading for degrees, do resetHeading(Rotation2d.fromDegrees(deg))
+     */
+    @Override
+    public void resetHeading(Rotation2d newHeading) {
+        Translation2d currentTranslation = getPose().getTranslation();
+        resetPose(new Pose2d(currentTranslation, newHeading));
     }
 
     @Override
