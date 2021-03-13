@@ -16,6 +16,16 @@ public class VisionPose {
     // static variable single_instance of type Singleton 
     private static VisionPose single_instance = null;
 
+
+    /**
+     * Field stores which field the robot is on
+     * 
+     * 0 mean default
+     * 1 means bounce path IRAH 2021
+     */
+    private int field = 0;
+
+
     // static method to create instance of Singleton class 
     public static VisionPose getInstance() 
     { 
@@ -40,7 +50,7 @@ public class VisionPose {
 
     // Camera Poses from centre
     final Pose2d backDriverCamera = new Pose2d(0, 0, Rotation2d.fromDegrees(0)); // <- needs to be filled out
-
+    final Pose2d middleOfConesCamera = new Pose2d();
 
     public enum VisionType {
         // 2021 game
@@ -159,7 +169,7 @@ public class VisionPose {
         Pose2d relativePose = null;
         switch (visionType) {
             case MiddleOfCones:
-                relativePose = new Pose2d(calcMiddleOfCones(), new Rotation2d(0));
+                relativePose = calcMiddleOfCones();
                 break;
     
             case WallTapeTarget:
@@ -231,21 +241,33 @@ public class VisionPose {
 
 
 
-    private Translation2d calcMiddleOfCones() {
-        double distanceToTarget = 0; // Get from vision network table
+    private Pose2d calcMiddleOfCones() {
+        double distanceToTarget = 2; // Get from vision network table
         double angleAtRobot = 0; // Get from vision network table
+        double angleAtTarget = 0;
 
-        if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99)
+        if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99 || (int) angleAtTarget == -99)
             return null;
         if (distanceToTarget <= 0.2 || distanceToTarget > 6.0)
             return null;
-        if (Math.abs(angleAtRobot) > 30)
+        if (Math.abs(angleAtRobot) > 40)
             return null;
+
+        switch (field) {
+            case 1:
+
+                
+
+        }
 
         Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
         Translation2d translation = new Translation2d(distanceToTarget, angle);
 
-        translation = transformCameraToCentre(new Pose2d(translation, new Rotation2d(0)), coneMarkerData.cameraOffsetFromCentre, true).getTranslation();
+        Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees(angleAtTarget));
+
+        relativePose = transformCameraToCentre(relativePose, middleOfConesCamera, false);
+
+        // transformCameraToCentre(new Pose2d(translation, new Rotation2d(0)), coneMarkerData.cameraOffsetFromCentre, true).getTranslation();
 
 
         return translation;
@@ -289,5 +311,14 @@ public class VisionPose {
 
         System.out.println("Vision Pose: " + getTargetTranslation(VisionType.TPracticeTarget));
 
+    }
+
+
+    public int getField() {
+        return field;
+    }
+
+    public void setField(int field) {
+        this.field = field;
     }
 }

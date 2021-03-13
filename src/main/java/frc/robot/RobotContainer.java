@@ -156,8 +156,11 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
+        // Testing forced numbers
+        int selectFolder = 2;
+        int selectPath = 3;
 
-        int selectorOne = 1;
+        int selectorOne = 0;
 
         if (analogSelectorOne != null){
             selectorOne = analogSelectorOne.getIndex();
@@ -166,9 +169,22 @@ public class RobotContainer {
         logger.info("Selectors: " + selectorOne);
 
         if (Config.hasSelectorSwitches == false) {
-            selectorOne = 10;
+            selectorOne = selectPath;
             logger.info("No Selector Switches - Forced Id: " + selectorOne);
         }
+        
+        switch (selectFolder) {
+            case 1:
+                return getAutoCommandTest(selectorOne);
+
+            case 2:
+                return getAutoCommandIRAH(selectorOne);
+        }
+
+        return null;
+    }
+
+    private Command getAutoCommandTest(int selectorOne) {
 
         if (selectorOne == 0) {
             // This is our 'do nothing' selector
@@ -316,6 +332,26 @@ public class RobotContainer {
 
         // Also return null if this ever gets to here because safety
         return null;
+    }
+
+    private Command getAutoCommandIRAH(int selectorOne) {
+        switch (selectorOne) {
+
+            case 0:
+                return null;
+
+            case 1:
+
+
+        }
+
+        // If nothing runs do nothing
+        return null;
+
+        
+
+
+
     }
 
     public void joystickRumble(double leftValue, double rightValue) {
