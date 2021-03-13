@@ -25,6 +25,8 @@ public class PassThroughWaypoint extends CommandBase {
   private final double endAfterTime;
   private final Pose2d endPose2d;
   private final double endVelocity;
+  private final double waypointRadiusMeters;
+  private Pose2d waypointPose2d;
   private int frequency; //The command will calculate a new trajectory every x cycles 
   private int cyclesToRecalculation;
 
@@ -32,7 +34,8 @@ public class PassThroughWaypoint extends CommandBase {
   private Logger logger = Logger.getLogger("PassThroughWaypoint");
 
   /** Creates a new PassThroughWaypoint. */
-  public PassThroughWaypoint(RamseteCommandMerge ramseteCommand, VisionType visionType, double endAfterTime, Pose2d endPose2d, double endVelocity) {
+  public PassThroughWaypoint(RamseteCommandMerge ramseteCommand, VisionType visionType, double endAfterTime, Pose2d endPose2d, 
+                            double endVelocity, double waypointRadiusMeters) {
     // Use addRequirements() here to declare subsystem dependencies.
 
     this.ramseteCommand = ramseteCommand;
@@ -40,6 +43,7 @@ public class PassThroughWaypoint extends CommandBase {
     this.endAfterTime = endAfterTime;
     this.endPose2d = endPose2d;
     this.endVelocity = endVelocity;
+    this.waypointRadiusMeters = waypointRadiusMeters;
 
     logger.addHandler(Config.logFileHandler);
     this.frequency = 5;
@@ -61,21 +65,19 @@ public class PassThroughWaypoint extends CommandBase {
 
       VisionPose visionPoseInst = VisionPose.getInstance();
       
-      // Ask VisionPose for a translation to the waypoint
-      Translation2d waypointTranslation = visionPoseInst.getTargetTranslation(visionType);
+      // Ask VisionPose for the waypoint Pose
+      waypointPose2d = visionPoseInst.getTargetPose(visionType);
 
       // If the translation isn't null, generate the trajectory
-      if(waypointTranslation != null){
+      if(waypointPose2d != null){
         Trajectory trajectory;
         try {
           //Get current robot velocities for left and right sides and find the average
           double[] measuredVelocities = DriveBaseHolder.getInstance().getMeasuredMetersPerSecond();
           double averageCurrentVelocity = (measuredVelocities[0] + measuredVelocities[1])/2.0;
 
-          //Generate trajectory from current pose to endPose, passing through waypointTranslation
-          trajectory = TrajectoryGenerator.generateTrajectory(DriveBaseHolder.getInstance().getPose(), 
-                                                              List.of(waypointTranslation),
-                                                              endPose2d, 
+          //Generate trajectory from current pose to endPose, passing through waypointPose2d
+          trajectory = TrajectoryGenerator.generateTrajectory(List.of(DriveBaseHolder.getInstance().getPose(), waypointPose2d, endPose2d),
                                                               visionPoseInst.getTrajConfig(averageCurrentVelocity, endVelocity, visionType));
 
         } catch (Exception e) {
@@ -86,7 +88,7 @@ public class PassThroughWaypoint extends CommandBase {
         if(trajectory != null){
           //Give the ramsete command the updated trajectory
           ramseteCommand.setNewTrajectory(trajectory);
-          System.out.println("wayPointTranslation is " + waypointTranslation.toString());
+          System.out.println("waypointPose2d is " + waypointPose2d.toString());
         }
 
       }
@@ -108,12 +110,31 @@ public class PassThroughWaypoint extends CommandBase {
     if(ramseteCommand.getElapsedTime() >= endAfterTime){
       return true;
     }
+    //If the robot has reached the waypoint, stop running the command
+    else if(isAtWaypoint(waypointPose2d, DriveBaseHolder.getInstance().getPose(), waypointRadiusMeters)){
+      return true;
+    }
     return false;
   }
 
   //Set recaclulation frequency to new value
   public void setFrequency(int frequency){
     this.frequency = frequency;
+  }
+
+  //Calculates whether the robot is within a certain radius of the waypoint
+  private boolean isAtWaypoint(Pose2d waypointPose, Pose2d currentPose, double radiusMeters){
+    if(waypointPose != null){
+        //Find X and Y distance between waypointPose and currentPose
+      double deltaX = currentPose.getX() - waypointPose.getX();
+      double deltaY = currentPose.getY() - waypointPose.getY();
+
+      //If distance is less than radiusMeters, return true
+      if(Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)) <= radiusMeters){
+        return true;
+      }
+    }
+    return false;
   }
 
 }

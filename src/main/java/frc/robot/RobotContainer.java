@@ -309,7 +309,7 @@ public class RobotContainer {
 
             // return ramsete;
             return new ParallelCommandGroup(ramsete,
-                    new PassThroughWaypoint(ramsete, VisionPose.VisionType.TPracticeTarget, 8, trajectory1.sample(trajectory1.getTotalTimeSeconds()).poseMeters, 0),
+                    new PassThroughWaypoint(ramsete, VisionPose.VisionType.TPracticeTarget, 8, trajectory1.sample(trajectory1.getTotalTimeSeconds()).poseMeters, 0, 0.5),
                     new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d()))); 
         }
 

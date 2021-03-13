@@ -101,8 +101,8 @@ public class DriveToWaypoint extends CommandBase {
   //Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    //If a certain time has elapsed, stop running the command
-    if(ramseteCommand.getElapsedTime() >= endAfterTime){
+    //If ramseteCommand isn't scheduled, stop running the command
+    if(!ramseteCommand.isScheduled()){
       return true;
     }
     return false;
