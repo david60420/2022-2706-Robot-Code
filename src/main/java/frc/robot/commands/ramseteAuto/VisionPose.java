@@ -55,7 +55,8 @@ public class VisionPose {
     public enum VisionType {
         // 2021 game
         MiddleOfCones(1),
-        WallTapeTarget(2), 
+        DiamondTape(2), 
+
         OuterGoal(3),
         TPracticeTarget(4);
         
@@ -84,7 +85,7 @@ public class VisionPose {
 
                 break;
 
-            case WallTapeTarget:
+            case DiamondTape:
 
                 break;
             case OuterGoal:
@@ -123,7 +124,7 @@ public class VisionPose {
         case MiddleOfCones:
             return false;
 
-        case WallTapeTarget:
+        case DiamondTape:
 
         case OuterGoal:
 
@@ -172,7 +173,7 @@ public class VisionPose {
                 relativePose = calcMiddleOfCones();
                 break;
     
-            case WallTapeTarget:
+            case DiamondTape:
                 break;
             case OuterGoal:
                 break;

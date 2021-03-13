@@ -215,6 +215,10 @@ public class Config {
     public static double kMaxSpeedMetersPerSecond = 1.0;
     public static double kMaxAccelerationMetersPerSecondSquared = 0.5; 
 
+    
+    public static double scaleField = robotSpecific(1.0, 1.0, 0.5, 1.0);
+
+
     // TrajectoryConfig & TrajectoryConstraint - needed to construct a trajectory
     public static TrajectoryConstraint autoVoltageConstraint = new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(Config.ksVolts,
             Config.kvVoltSecondsPerMeter, Config.kaVoltSecondsSquaredPerMeter), Config.kDriveKinematics, 10);

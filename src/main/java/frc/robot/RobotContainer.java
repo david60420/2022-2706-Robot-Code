@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -32,9 +33,13 @@ import frc.robot.commands.*;
 import frc.robot.config.Config;
 import frc.robot.sensors.AnalogSelector;
 import frc.robot.subsystems.*;
+import frc.robot.commands.ramseteAuto.DriveToWaypoint;
 import frc.robot.commands.ramseteAuto.PassThroughWaypoint;
+import frc.robot.commands.ramseteAuto.PoseScaled;
 import frc.robot.commands.ramseteAuto.RamseteCommandMerge;
+import frc.robot.commands.ramseteAuto.TranslationScaled;
 import frc.robot.commands.ramseteAuto.VisionPose;
+import frc.robot.commands.ramseteAuto.VisionPose.VisionType;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -342,8 +347,60 @@ public class RobotContainer {
 
             case 1:
                 // Bounce path
+                Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                    new PoseScaled(),
+                    new PoseScaled()),
+                    VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTurnAroundSpeed, true));
+                RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P1");
 
+                Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(
+                    new PoseScaled(),
+                    List.of(new TranslationScaled()),
+                    new PoseScaled(),
+                    VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, VisionType.MiddleOfCones));
+                RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P2");
+
+                Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(List.of(
+                    new PoseScaled(),
+                    new PoseScaled()),
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTurnAroundSpeed, VisionType.MiddleOfCones));
+                RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P3");
+
+                Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(
+                    new PoseScaled(0, 0, 0), List.of(
+                    new TranslationScaled(0, 0), 
+                    new TranslationScaled(0, 0), 
+                    new TranslationScaled(0, 0)),
+                    new PoseScaled(),
+                    VisionPose.getInstance().getTrajConfig(0, 0, VisionType.OuterGoal));
+                RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P4");
+
+                Trajectory trajectory5 = TrajectoryGenerator.generateTrajectory(List.of(
+                    new PoseScaled(),
+                    new PoseScaled()),
+                    VisionPose.getInstance().getTrajConfig(0, 0, VisionType.MiddleOfCones));
+                RamseteCommandMerge ramsete5 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P5");
+
+                double waypointRadiusMeters = 0.5;
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                    ramsete1,
+                    new ParallelRaceGroup(ramsete2, new PassThroughWaypoint(ramsete2, VisionType.MiddleOfCones, 6, ramsete2.getTargetPose(), Config.kRamseteTransferSpeed, waypointRadiusMeters)),
+                    new ParallelRaceGroup(ramsete3, new PassThroughWaypoint(ramsete3, VisionType.MiddleOfCones, 6, ramsete3.getTargetPose(), Config.kRamseteTurnAroundSpeed, waypointRadiusMeters)),
+                    new ParallelRaceGroup(ramsete4, new DriveToWaypoint(ramsete4, VisionType.DiamondTape, 10, Config.kRamseteTurnAroundSpeed)),
+                    new ParallelRaceGroup(ramsete5, new PassThroughWaypoint(ramsete5, VisionType.MiddleOfCones, 6, ramsete4.getTargetPose(), 0, waypointRadiusMeters))
+                );
+
+
+            case 2:
+                // Barrel Racing path
+
+                Trajectory trajectory1;
                 
+
+
+
 
 
         }
@@ -356,6 +413,8 @@ public class RobotContainer {
 
 
     }
+
+    
 
     public void joystickRumble(double leftValue, double rightValue) {
         //Joystick rumble (driver feedback). leftValue/rightValue sets vibration force.
