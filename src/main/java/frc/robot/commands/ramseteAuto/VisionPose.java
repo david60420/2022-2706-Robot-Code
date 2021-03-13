@@ -265,12 +265,14 @@ public class VisionPose {
 
         Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees(angleAtTarget));
 
+        // Transform origin from camera location to robot origin which is centre of robot.
         relativePose = transformCameraToCentre(relativePose, middleOfConesCamera, false);
+        
 
         // transformCameraToCentre(new Pose2d(translation, new Rotation2d(0)), coneMarkerData.cameraOffsetFromCentre, true).getTranslation();
 
 
-        return translation;
+        return relativePose;
     }
 
     private Translation2d calcTPracticeTarget() {
