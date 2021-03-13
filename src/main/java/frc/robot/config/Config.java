@@ -70,8 +70,11 @@ public class Config {
     /**
      * PLACE IDS OF ROBOTS HERE
      **/
-    // Mergio is has the ID 2
-    // Mergonaut is ID 3
+    //ID 0 is comp 2020 bot
+    //ID 1 is practice 2020 comp bot
+    //ID 2 is mini-bot
+    //ID 3 is Mergonaut (Deep Space Chassis)
+    //
     
     // This is a static class which should not be instantiated
     private Config() {
