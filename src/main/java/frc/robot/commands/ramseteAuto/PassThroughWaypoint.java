@@ -60,13 +60,13 @@ public class PassThroughWaypoint extends CommandBase {
   @Override
   public void execute() {
 
+    VisionPose visionPoseInst = VisionPose.getInstance();
+      
+    // Ask VisionPose for the waypoint Pose
+    waypointPose2d = visionPoseInst.getTargetPose(visionType);
+
     if(cyclesToRecalculation == 0){
       cyclesToRecalculation = frequency - 1;
-
-      VisionPose visionPoseInst = VisionPose.getInstance();
-      
-      // Ask VisionPose for the waypoint Pose
-      waypointPose2d = visionPoseInst.getTargetPose(visionType);
 
       // If the translation isn't null, generate the trajectory
       if(waypointPose2d != null){
