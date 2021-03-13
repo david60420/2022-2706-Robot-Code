@@ -345,7 +345,7 @@ public class RobotContainer {
             case 0:
                 return null;
 
-            case 1:
+            case 1:{
                 // Bounce path
                 Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
                     new PoseScaled(),
@@ -391,13 +391,52 @@ public class RobotContainer {
                     new ParallelRaceGroup(ramsete4, new DriveToWaypoint(ramsete4, VisionType.DiamondTape, 10, Config.kRamseteTurnAroundSpeed)),
                     new ParallelRaceGroup(ramsete5, new PassThroughWaypoint(ramsete5, VisionType.MiddleOfCones, 6, ramsete4.getTargetPose(), 0, waypointRadiusMeters))
                 );
-
-
-            case 2:
+            }
+            case 2:{
                 // Barrel Racing path
 
+                Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(new PoseScaled(0.922, -2.357, 0.0), 
+                  List.of(
+                    new TranslationScaled(),
+                    new TranslationScaled(),
+                    new TranslationScaled(),
+                    new TranslationScaled() ),
+                    new PoseScaled(),
+                    VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, VisionType.DiamondTape));
+                RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAH-Barrel-P1");
+                
+                Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of( 
+                    new PoseScaled(), 
+                    new PoseScaled()), 
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, VisionType.DiamondTape));
+                RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "IRAH-Barrel-P2");
+
+                Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(new PoseScaled(), 
+                  List.of(
+                    new TranslationScaled(),
+                    new TranslationScaled(),
+                    new TranslationScaled()),
+                    new PoseScaled(),
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, VisionType.DiamondTape));
+                RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAH-Barrel-P3");
                 
 
+                Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(List.of( 
+                    new PoseScaled(), 
+                    new PoseScaled()), 
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, VisionType.DiamondTape));
+                RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory4, "IRAH-Barrel-P4");
+
+                Trajectory trajectory5 = TrajectoryGenerator.generateTrajectory(new PoseScaled(), 
+                  List.of(
+                    new TranslationScaled(),
+                    new TranslationScaled(),
+                    new TranslationScaled()),
+                    new PoseScaled(),
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, VisionType.MiddleOfCones));
+                RamseteCommandMerge ramsete5 = new RamseteCommandMerge(trajectory5, "IRAH-Barrel-P5");
+            
+            }
 
 
 
