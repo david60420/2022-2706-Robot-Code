@@ -396,8 +396,8 @@ public class RobotContainer {
             case 2:
                 // Barrel Racing path
 
-                Trajectory trajectory1;
                 
+
 
 
 

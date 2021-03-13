@@ -214,10 +214,13 @@ public class Config {
     // Ramsete Max Velocity and max acceleration
     public static double kMaxSpeedMetersPerSecond = 1.0;
     public static double kMaxAccelerationMetersPerSecondSquared = 0.5; 
-
     
-    public static double scaleField = robotSpecific(1.0, 1.0, 0.5, 1.0);
+    public static double kRamseteTransferSpeed = kMaxSpeedMetersPerSecond;
+    public static double kRamseteTurnAroundSpeed = kMaxSpeedMetersPerSecond; 
 
+    // Scale the field
+    private static double defaultScale = 1.0;
+    public static double scaleField = robotSpecific(defaultScale, defaultScale, 0.5, defaultScale);
 
     // TrajectoryConfig & TrajectoryConstraint - needed to construct a trajectory
     public static TrajectoryConstraint autoVoltageConstraint = new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(Config.ksVolts,
