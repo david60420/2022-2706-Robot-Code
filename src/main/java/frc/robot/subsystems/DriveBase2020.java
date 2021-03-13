@@ -29,7 +29,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.logging.Logger;
 
 public class DriveBase2020 extends DriveBase {
-    WPI_TalonSRX leftMaster, rightMaster, climberTalon;
+    WPI_TalonSRX leftMaster, rightMaster, climberTalon;    
     BaseMotorController leftSlave, rightSlave;
 
     private DifferentialDriveOdometry odometry;    
@@ -43,22 +43,31 @@ public class DriveBase2020 extends DriveBase {
     private NetworkTableEntry leftEncoder, rightEncoder, currentX, currentY, currentAngle;
 
     public DriveBase2020() {
-        leftMaster = new WPI_TalonSRX(Config.LEFT_FRONT_MOTOR);
-        rightMaster = new WPI_TalonSRX(Config.RIGHT_FRONT_MOTOR);
+        leftMaster = new WPI_TalonSRX(Config.LEFT_MASTER);
+        rightMaster = new WPI_TalonSRX(Config.RIGHT_MASTER);
+
+        // Check whether to construct a victor or a talon or nothing
+        if(Config.HAS_FOLLOWERS == true){
+            if (Config.LEFT_SLAVE_ISVICTOR) {
+                leftSlave = new WPI_VictorSPX(Config.LEFT_REAR_MOTOR);
+            } else {
+                leftSlave = new WPI_TalonSRX(Config.LEFT_REAR_MOTOR);
+            }
+            if (Config.RIGHT_SLAVE_ISVICTOR) {
+                rightSlave = new WPI_VictorSPX(Config.RIGHT_REAR_MOTOR);
+            } else {
+                rightSlave = new WPI_TalonSRX(Config.RIGHT_REAR_MOTOR);
+            }
+        }
+        else{
+            leftSlave = null;
+            rightSlave = null;
+        }
 
         odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(getCurrentAngle()));
 
         // Check whether to construct a victor or a talon
-        if (Config.LEFT_SLAVE_ISVICTOR) {
-            leftSlave = new WPI_VictorSPX(Config.LEFT_REAR_MOTOR);
-        } else {
-            leftSlave = new WPI_TalonSRX(Config.LEFT_REAR_MOTOR);
-        }
-        if (Config.RIGHT_SLAVE_ISVICTOR) {
-            rightSlave = new WPI_VictorSPX(Config.RIGHT_REAR_MOTOR);
-        } else {
-            rightSlave = new WPI_TalonSRX(Config.RIGHT_REAR_MOTOR);
-        }
+        
 
         // Only construct the climber talon if its there
         if (Config.CLIMBER_TALON != -1)
@@ -75,9 +84,12 @@ public class DriveBase2020 extends DriveBase {
         if (Config.PIGEON_ID != -1) {
             if (Config.PIGEON_ID == Config.LEFT_REAR_MOTOR) 
                 pigeon = new PigeonIMU((WPI_TalonSRX) leftSlave);
-            else
+            else if (Config.PIGEON_ID == 27){
+               pigeon = new PigeonIMU(Config.PIGEON_ID);
+            }
+            else{
                 pigeon = new PigeonIMU(new WPI_TalonSRX(Config.PIGEON_ID));
-
+            }
             pigeon.setFusedHeading(0d, Config.CAN_TIMEOUT_LONG);
         }
 

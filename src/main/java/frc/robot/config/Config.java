@@ -82,17 +82,20 @@ public class Config {
     private static Class<? extends DriveBase> Pre2020DriveBase = DriveBasePre2020.class.asSubclass(DriveBase.class);
     private static Class<? extends DriveBase> Post2020DriveBase = DriveBase2020.class.asSubclass(DriveBase.class);
     public static Class<? extends DriveBase> DRIVEBASE_CLASS = robotSpecific(Post2020DriveBase, Post2020DriveBase, Pre2020DriveBase, Post2020DriveBase, Pre2020DriveBase, Pre2020DriveBase, Pre2020DriveBase, Pre2020DriveBase, Pre2020DriveBase);
-    public static int RIGHT_FRONT_MOTOR = robotSpecific(2, 2, 3, 2, 2);
-    public static int RIGHT_REAR_MOTOR = robotSpecific(4, 4, 4, 4, 4);
-    public static int LEFT_FRONT_MOTOR = robotSpecific(1, 1, 1, 1, 1);
+    public static int RIGHT_FRONT_MOTOR = robotSpecific(2, 2, 1, 2, 2);
+    public static int RIGHT_REAR_MOTOR = robotSpecific(4, 4, -1, 4, 4);
+    public static int LEFT_FRONT_MOTOR = robotSpecific(1, 1, -1, 1, 1);
     public static int LEFT_REAR_MOTOR = robotSpecific(3, 3, 2, 3, 3);
     public static int INTAKE_MOTOR = robotSpecific(6, 6, -1, -1, -1);
     public static int SHOOTER_MOTOR = robotSpecific(5, 5, -1, -1, 16); //protobot is 16
     public static int CLIMBER_TALON = robotSpecific(10, 10, -1, -1, 16);
     public static int AGITATOR_MOTOR = robotSpecific(9, 9, -1, -1);
+    public static int RIGHT_MASTER = robotSpecific(RIGHT_FRONT_MOTOR, RIGHT_FRONT_MOTOR, RIGHT_FRONT_MOTOR, RIGHT_FRONT_MOTOR, RIGHT_FRONT_MOTOR);
+    public static int LEFT_MASTER = robotSpecific(LEFT_FRONT_MOTOR, LEFT_FRONT_MOTOR, LEFT_REAR_MOTOR, LEFT_FRONT_MOTOR, LEFT_FRONT_MOTOR);
 
-    public static boolean LEFT_SLAVE_ISVICTOR = robotSpecific(true, true, true, false);
-    public static boolean RIGHT_SLAVE_ISVICTOR = robotSpecific(true, true, true, false);
+
+    public static boolean LEFT_SLAVE_ISVICTOR = robotSpecific(true, true, false, false);
+    public static boolean RIGHT_SLAVE_ISVICTOR = robotSpecific(true, true, false, false);
     
     // Invert talons to consider forward as forward (same practice for all objects)
     public static boolean LEFT_FRONT_INVERTED = robotSpecific(false, false, false, false);
@@ -111,11 +114,11 @@ public class Config {
     public static boolean MOTOR_CURRENT_LIMIT = true;   //Enable or disable motor current limiting.
 
     public static int TALON_5_PLYBOY = robotSpecific(-1, -1, -1, -1, -1, 5);
-    public static int PIGEON_ID = robotSpecific(CLIMBER_TALON, CLIMBER_TALON, RIGHT_REAR_MOTOR, LEFT_REAR_MOTOR, LEFT_REAR_MOTOR, TALON_5_PLYBOY);
+    public static int PIGEON_ID = robotSpecific(CLIMBER_TALON, CLIMBER_TALON, 27, LEFT_REAR_MOTOR, LEFT_REAR_MOTOR, TALON_5_PLYBOY);
     
-    public static int ANALOG_SELECTOR_ONE = robotSpecific(0, 0, -1, -1, -1, 0);
+    public static int ANALOG_SELECTOR_ONE = robotSpecific(0, 0, 0, -1, -1, 0);
     
-    public static int ARM_TALON = robotSpecific(7, 7, 12, -1);
+    public static int ARM_TALON = robotSpecific(7, 7, -1, -1);
 
     public static int FEEDER_SUBSYSTEM_TALON = robotSpecific(8, 8, -1, -1);
 
@@ -146,14 +149,16 @@ public class Config {
     public static int RIGHT_CONTROL_STICK_Y = 5;
     public static int RIGHT_CONTROL_STICK_X = 4;
     
-    public static boolean INVERT_FIRST_AXIS = robotSpecific(true, true, true);
-    public static boolean INVERT_SECOND_AXIS = robotSpecific(false, false, true);
+    public static boolean INVERT_FIRST_AXIS = robotSpecific(true, true, false);
+    public static boolean INVERT_SECOND_AXIS = robotSpecific(false, false, false);
     
+    public static boolean HAS_FOLLOWERS = robotSpecific(true, true, false, true, true);
+
     public static double CONTROLLER_DEADBAND = 0.05;
     
     public static double CURVATURE_OVERRIDE = 0.25;
 
-    public static boolean ARM_PHASE = robotSpecific(true, true);
+    public static boolean ARM_PHASE = robotSpecific(true, true, false);
     
     public static boolean INVERT_ARM_TALON = robotSpecific(true, true, false);
     
@@ -195,7 +200,7 @@ public class Config {
     public static double DRIVETRAIN_D_SPECIFIC = robotSpecific(0.0023, 0.0023, 0.0, 0.0016d, 0.0, 0.03);
 
     // Drivetain data
-    public static double drivetrainWheelDiameter = 0.1524; // Diameter of wheel is 0.1524
+    public static double drivetrainWheelDiameter = robotSpecific(0.1524, 0.1524, 0.1016, 0.1524, 0.1524, 0.1524); // Diameter of wheel is 0.1524
     public static int ticksPerRevolution = 4096;
 
     // Ramsete Default values
@@ -232,7 +237,7 @@ public class Config {
     public static double RAMSETE_ALLOWABLE_PID_ERROR = 0; // <- never stop the P loop from running
     public static double RAMSETE_VOLTAGE_COMPENSATION = 12;
 
-    public static boolean hasSelectorSwitches = robotSpecific(true, false, false, false);
+    public static boolean hasSelectorSwitches = robotSpecific(true, false, true, false);
 
     public static final FluidConstant<Integer> RPM = new FluidConstant<>("Shooter RPM", 1700)
             .registerToTable(Config.constantsTable);
