@@ -208,6 +208,9 @@ public class VisionPose {
      * ------------------
      */
 
+    private double feetToMeters(double feet) {
+        return feet * Config.METERS_IN_ONE_FOOT;
+    }
     /**
      * Transform Relative Pose with origin at centre of robot to 
      * field Pose with origin of wherever the Odometry reset it's origin to
@@ -338,12 +341,21 @@ public class VisionPose {
         double angleAtRobot = middleOfConesAngleAtRobot.getDouble(defaultValue) * flipAngle;
         double angleAtTarget = middleOfConesAngleAtTarget.getDouble(defaultValue) * flipAngle;
 
+        // Check for "code" that means no data available
         if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99 || (int) angleAtTarget == -99)
             return null;
+
+        // Check that distance is in a reasonable range
         if (distanceToTarget <= 0.2 || distanceToTarget > 6.0)
             return null;
+        
+        // Check that angle is in a reasonable range
         if (Math.abs(angleAtRobot) > 40)
             return null;
+
+
+        // Change distance to meters
+        distanceToTarget = feetToMeters(distanceToTarget);
 
         // Calculate Relative Pose
         Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
@@ -356,8 +368,10 @@ public class VisionPose {
         // Use odometry to calculate pose with a nominal field origin 
         Pose2d fieldPose = transformPoseToField(relativePose);
         
-        // Whether a target is found
+
+        // Stores the calculated pose if it's near a known target
         Pose2d knownTarget = null;
+        
         switch (field) {
             case General: break;
             case BarrelRacing: break;
@@ -409,13 +423,16 @@ public class VisionPose {
         if (Math.abs(angleAtRobot) > 40)
             return null;
 
+        // Change distance to meters
+        distanceToTarget = feetToMeters(distanceToTarget);
+
         // Calculate Relative Pose
         Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
         Translation2d translation = new Translation2d(distanceToTarget, angle); // distance*cosTheta, distance*sinTheta
         Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees(angleAtTarget));
 
         // Change origin from camera location to robot origin, aka centre of robot.
-        relativePose = transformCameraToCentre(relativePose, middleOfConesCamera, false);
+        relativePose = transformCameraToCentre(relativePose, diamondTapeCamera, false);
 
         // Use odometry to calculate pose with a nominal field origin 
         Pose2d fieldPose = transformPoseToField(relativePose);
