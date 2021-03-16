@@ -372,7 +372,7 @@ public class RobotContainer {
                     new TranslationScaled(0, 0), 
                     new TranslationScaled(0, 0)),
                     new PoseScaled(),
-                    VisionPose.getInstance().getTrajConfig(0, 0, VisionType.OuterGoal));
+                    VisionPose.getInstance().getTrajConfig(0, 0, VisionType.DiamondTape));
                 RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P4");
 
                 Trajectory trajectory5 = TrajectoryGenerator.generateTrajectory(List.of(
