@@ -82,7 +82,7 @@ public class DriveBase2020 extends DriveBase {
         setCoastMode();
 
         if (Config.PIGEON_ID != -1) {
-            if (Config.PIGEON_ID == Config.LEFT_REAR_MOTOR) 
+            if (Config.PIGEON_ID == Config.LEFT_REAR_MOTOR && leftSlave != null) 
                 pigeon = new PigeonIMU((WPI_TalonSRX) leftSlave);
             else if (Config.PIGEON_ID == 27){
                pigeon = new PigeonIMU(Config.PIGEON_ID);
@@ -134,16 +134,24 @@ public class DriveBase2020 extends DriveBase {
         leftMaster.stopMotor();
         rightMaster.stopMotor();
 
-        leftSlave.neutralOutput();
-        rightSlave.neutralOutput();
+        if(leftSlave != null){
+            leftSlave.neutralOutput();
+        }
+        if(rightSlave != null){
+            rightSlave.neutralOutput();
+        }
     }
     
     @Override
     protected void resetMotors() {
         leftMaster.configFactoryDefault(Config.CAN_TIMEOUT_LONG);
         rightMaster.configFactoryDefault(Config.CAN_TIMEOUT_LONG);
-        leftSlave.configFactoryDefault(Config.CAN_TIMEOUT_LONG);
-        rightSlave.configFactoryDefault(Config.CAN_TIMEOUT_LONG);
+        if(leftSlave != null){
+            leftSlave.configFactoryDefault(Config.CAN_TIMEOUT_LONG);
+        }
+        if(rightSlave != null){
+            rightSlave.configFactoryDefault(Config.CAN_TIMEOUT_LONG);
+        }
 
         leftMaster.configPeakCurrentLimit(0);
         leftMaster.configPeakCurrentDuration(0);
@@ -211,8 +219,12 @@ public class DriveBase2020 extends DriveBase {
         // Set the motor inversions
         leftMaster.setInverted(Config.LEFT_FRONT_INVERTED);
         rightMaster.setInverted(Config.RIGHT_FRONT_INVERTED);
-        leftSlave.setInverted(Config.LEFT_REAR_INVERTED);
-        rightSlave.setInverted(Config.RIGHT_REAR_INVERTED);
+        if(leftSlave != null){
+            leftSlave.setInverted(Config.LEFT_REAR_INVERTED);
+        }
+        if(rightSlave != null){
+            rightSlave.setInverted(Config.RIGHT_REAR_INVERTED);
+        }    
 
         // set the encoder inversions
         leftMaster.setSensorPhase(Config.DRIVETRAIN_LEFT_SENSORPHASE);
@@ -277,22 +289,34 @@ public class DriveBase2020 extends DriveBase {
     public void setCoastMode() {
         leftMaster.setNeutralMode(NeutralMode.Coast);
         rightMaster.setNeutralMode(NeutralMode.Coast);
-        leftSlave.setNeutralMode(NeutralMode.Coast);
-        rightSlave.setNeutralMode(NeutralMode.Coast);
+        if(leftSlave != null){
+            leftSlave.setNeutralMode(NeutralMode.Coast);
+        }
+        if(rightSlave != null){
+            rightSlave.setNeutralMode(NeutralMode.Coast);
+        }
     }
 
     @Override
     public void setBrakeMode() {
         leftMaster.setNeutralMode(NeutralMode.Brake);
         rightMaster.setNeutralMode(NeutralMode.Brake);
-        leftSlave.setNeutralMode(NeutralMode.Brake);
-        rightSlave.setNeutralMode(NeutralMode.Brake); 
+        if(leftSlave != null){
+            leftSlave.setNeutralMode(NeutralMode.Brake);
+        }
+        if(rightSlave != null){
+            rightSlave.setNeutralMode(NeutralMode.Brake); 
+        }
     }
     
     @Override
     protected void followMotors() {
-        leftSlave.follow(leftMaster);
-        rightSlave.follow(rightMaster);
+        if(leftSlave != null){
+            leftSlave.follow(leftMaster);
+        }
+        if(rightSlave != null){
+            rightSlave.follow(rightMaster);
+        }
     }
     
     @Override
