@@ -215,6 +215,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void teleopPeriodic() {
+        // VisionPose.getInstance().test();
     }
 
     @Override

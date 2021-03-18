@@ -60,6 +60,7 @@ public class VisionPose {
 
     NetworkTableEntry tTargetDistanceToTarget;
     NetworkTableEntry tTargetAngleAtRobot;
+    NetworkTableEntry tTargetAngleAtTarget;
 
     NetworkTableEntry diamondTapeDistanceToTarget;
     NetworkTableEntry diamondTapeAngleAtRobot;
@@ -75,6 +76,7 @@ public class VisionPose {
         var table = NetworkTableInstance.getDefault().getTable("Vision2017"); 
         tTargetDistanceToTarget = table.getEntry("tapeDistance");
         tTargetAngleAtRobot = table.getEntry("tapeYaw");
+        tTargetAngleAtTarget = table.getEntry("tapeTargetYaw"); // NOT CORRECT
 
         // See spreadsheet link below for name of entries, 
         // sheet name Vision-Robot Code Network Table Interface
@@ -186,7 +188,7 @@ public class VisionPose {
                 return calcDiamondTape();
 
             case TPracticeTarget:
-                return new Pose2d(calcTPracticeTarget(), new Rotation2d(0));
+                return calcTPracticeTarget();
 
             // If vision type doesn't exist return null
             default:
@@ -235,7 +237,7 @@ public class VisionPose {
         if (isTranslation) {
             centreRelativePose = new Pose2d(relativePose.getTranslation().plus(cameraPose.getTranslation()), new Rotation2d(0));
         } else {
-            centreRelativePose = relativePose.plus(new Transform2d(cameraPose, new Pose2d()));
+            centreRelativePose = relativePose.plus(new Transform2d(cameraPose.getTranslation(), cameraPose.getRotation()));
         }
 
         return centreRelativePose;
@@ -463,43 +465,67 @@ public class VisionPose {
         return knownTarget;
     }
 
-    private Translation2d calcTPracticeTarget() {
-        // double distanceToTarget = VisionCtrlNetTable.distanceToPowerCell.get();
-        // double angleAtRobot = VisionCtrlNetTable.yawToPowerCell.get();
-
+    private Pose2d calcTPracticeTarget() {
         double distanceToTarget = tTargetDistanceToTarget.getDouble(-99);
         double angleAtRobot = tTargetAngleAtRobot.getDouble(-99);
+        double angleAtTarget = tTargetAngleAtTarget.getDouble(-99);
 
-        if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99)
+        // Check for "code" that means no data available
+        if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99 || (int) angleAtTarget == -99)
             return null;
+
+        // Check that distance is in a reasonable range
         if (distanceToTarget <= 0.2 || distanceToTarget > 6.0)
             return null;
-        if (Math.abs(angleAtRobot) > 30)
+        
+        // Check that angle is in a reasonable range
+        if (Math.abs(angleAtRobot) > 40)
             return null;
 
+        // Change distance to meters
+        // distanceToTarget = feetToMeters(distanceToTarget);
+
+        // Calculate Relative Pose
         Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
-        Translation2d translation = new Translation2d(distanceToTarget, angle);
+        Translation2d translation = new Translation2d(distanceToTarget, angle); // math -> distance*cosTheta, distance*sinTheta
+        Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees(angleAtRobot - angleAtTarget *-1)); // Flip angle?
 
-        
-        translation = transformTranslationOffWall(translation, -1.5, DriveBaseHolder.getInstance().getOdometryHeading());
+        // Change origin from camera location to robot origin, aka centre of robot.
+        relativePose = transformCameraToCentre(relativePose, diamondTapeCamera, false);
 
-        return translation;
+        System.out.println("RelativePose is " + relativePose.toString());
+        // Use odometry to calculate pose with a nominal field origin 
+        Pose2d fieldPose = transformPoseToField(relativePose);
+
+        return fieldPose;
     }
 
 
     public void test() {
-        DriveBase drive = DriveBaseHolder.getInstance();
+        // DriveBase drive = DriveBaseHolder.getInstance();
 
-        Translation2d relative = new Translation2d(1,0);
-        drive.resetPose(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
+        // Translation2d relative = new Translation2d(1,0);
+        // drive.resetPose(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
 
         // System.out.printf("\n\n\n");
         // System.out.println("Odometry: " + drive.getPose());
         // System.out.printf("Rel: %s, Field: %s \n", relative.toString(), transformTranslationToField(relative));
         // System.out.printf("\n\n\n");
 
+        
+        tTargetDistanceToTarget.setNumber(1.04);
+        tTargetAngleAtRobot.setNumber(0);
+        tTargetAngleAtTarget.setNumber(0);
+        DriveBaseHolder.getInstance().resetPose(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
+        System.out.println("Odometry: " + DriveBaseHolder.getInstance().getPose().toString());
+        System.out.println("Vision Pose: " + getTargetPose(VisionType.TPracticeTarget).toString());
 
-        System.out.println("Vision Pose: " + getTargetPose(VisionType.TPracticeTarget));
+        tTargetDistanceToTarget.setNumber(1.06);
+        tTargetAngleAtRobot.setNumber(-20);
+        tTargetAngleAtTarget.setNumber(0);
+        DriveBaseHolder.getInstance().resetPose(new Pose2d(0, 0, Rotation2d.fromDegrees(20)));
+        System.out.println("Odometry: " + DriveBaseHolder.getInstance().getPose().toString());
+        System.out.println("Vision Pose: " + getTargetPose(VisionType.TPracticeTarget).toString());
 
     }
 
