@@ -211,12 +211,12 @@ public class Config {
     public static double kRamseteZeta = 0.7;
 
     // Frc-characterization data
-    public static double ksVolts = robotSpecific(0.0d, 0.819d, 0.0, 1.31); // robotSpecific()
-    public static double kvVoltSecondsPerMeter = robotSpecific(0.0d, 3.24, 0.0, 3.15);
-    public static double kaVoltSecondsSquaredPerMeter = robotSpecific(0.0d, 0.343, 0.0, 0.569);
+    public static double ksVolts = robotSpecific(0.0d, 0.819d, 1.32, 1.31); // robotSpecific()
+    public static double kvVoltSecondsPerMeter = robotSpecific(0.0d, 3.24, 4.65, 3.15);
+    public static double kaVoltSecondsSquaredPerMeter = robotSpecific(0.0d, 0.343, 0.5, 0.569);
 
     // Track width and kinematics
-    public static double kTrackWidth = robotSpecific(0.0d, 0.5669, 0.0, 0.69);
+    public static double kTrackWidth = robotSpecific(0.0d, 0.5669, 0.3136, 0.69);
     public static DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackWidth);
 
     // Ramsete Max Velocity and max acceleration
@@ -234,7 +234,7 @@ public class Config {
     // Ramsete/Talon P values
     public static int DRIVETRAIN_SLOTID_RAMSETE = 1;
     public static double RAMSETE_KF = 0;
-    public static double RAMSETE_KP = robotSpecific(0.0d, 0.0595d, 0.0, 0.0105); // Fill in from robot characterization
+    public static double RAMSETE_KP = robotSpecific(0.0d, 0.0595d, 0.0434, 0.0105); // Fill in from robot characterization
     public static double RAMSETE_KI = 0;
     public static double RAMSETE_KD = 0;
     public static double RAMSETE_ALLOWABLE_PID_ERROR = 0; // <- never stop the P loop from running

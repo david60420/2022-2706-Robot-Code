@@ -211,7 +211,7 @@ public class DriveBase2020 extends DriveBase {
             logErrorCode(e1, "DrivetrainLeftMaster", Config.LEFT_FRONT_MOTOR, "configSelectedFeedbackSensor(MagEncoderRelative)");
             logErrorCode(e2, "DrivetrainRightMaster", Config.RIGHT_FRONT_MOTOR, "configSelectedFeedbackSensor(MagEncoderRelative)");
         }
-
+        
         // Turn on voltage compensation
         leftMaster.enableVoltageCompensation(true);
         rightMaster.enableVoltageCompensation(true);
@@ -336,8 +336,8 @@ public class DriveBase2020 extends DriveBase {
 
             odometry.update(Rotation2d.fromDegrees(getCurrentAngle()), getLeftPosition(), getRightPosition());
         
-        // leftEncoder.setNumber(getLeftPosition());
-        // rightEncoder.setNumber(getRightPosition());
+            leftEncoder.setNumber(getLeftPosition());
+            rightEncoder.setNumber(getRightPosition());
 
         // Pose2d pose = getPose();
         // currentX.setNumber(pose.getX());
