@@ -208,13 +208,21 @@ public class RobotContainer {
 
             return new RunCommand(() -> DriveBaseHolder.getInstance().tankDriveVelocities(vel, vel, feedforward.calculate(vel), feedforward.calculate(vel)));
 
+        
+            /** 
+             * TESTING RAMSETE PATH
+             * 
+             */
         } else if(selectorOne == 4) {
-            // Run a example ramsete command
-            Command resetOdometry = new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d()), DriveBaseHolder.getInstance());
             
             Trajectory trajectory = TrajectoryGenerator.generateTrajectory(List.of(
-                new Pose2d(), new Pose2d(2.5, -0.5, Rotation2d.fromDegrees(0))), 
+                new Pose2d(), 
+                new Pose2d(2.0, 0, Rotation2d.fromDegrees(0))), 
                 Config.trajectoryConfig.setStartVelocity(0).setEndVelocity(0).setReversed(false));
+
+            // Run a example ramsete command
+            Command resetOdometry = new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory.sample(0).poseMeters), DriveBaseHolder.getInstance());
+            
 
             return resetOdometry.andThen(new RamseteCommandMerge(trajectory, "R4-SingleTraj"));
 

@@ -383,6 +383,8 @@ public class DriveBase2020 extends DriveBase {
 
         rightMaster.set(ControlMode.Velocity, metersPerSecondToTalonVelocity(rightVel), 
                 DemandType.ArbitraryFeedForward, rightFF / 12.0); 
+
+        differentialDrive.feed();
     }
 
     @Override
