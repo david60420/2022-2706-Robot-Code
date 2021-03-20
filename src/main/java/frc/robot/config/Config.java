@@ -3,6 +3,8 @@ package frc.robot.config;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
@@ -222,6 +224,46 @@ public class Config {
     // Ramsete Max Velocity and max acceleration
     public static double kMaxSpeedMetersPerSecond = 1.0;
     public static double kMaxAccelerationMetersPerSecondSquared = 0.5; 
+    
+    public static double kRamseteTransferSpeed = kMaxSpeedMetersPerSecond;
+    public static double kRamseteTurnAroundSpeed = kMaxSpeedMetersPerSecond; 
+
+    // Converted feet to meters
+    public static double METERS_IN_ONE_FOOT = 0.3048;
+    // Scale the field
+    private static double defaultScale = 1.0;
+    public static double scaleField = robotSpecific(defaultScale, defaultScale, 0.5, defaultScale);
+
+    // VISION STUFF BELOW
+    // Allowable vision error in meters
+    public static double ALLOWABLE_VISION_ODOMETRY_ERROR = 0.5;
+
+    // Vision code that means no target found
+    public static double VISION_NO_TARGET_CODE = -99;
+
+    // Change the side of the vision data since gyro is counter-clockwise positive
+    public static byte VISION_FLIP_ANGLE = -1;
+
+    // Set whether to use the vision perpendicular angle or the gyro to figure out 
+    // the rotation at a vision target
+    public static boolean useVisionPerpendicularAngle = false;
+    
+    // The location of the camera from the centre of the robot
+    public static Pose2d middleOfConesCameraLocation = robotSpecific(
+                                            new Pose2d(), 
+                                            new Pose2d(), 
+                                            new Pose2d(),
+                                            new Pose2d());
+
+    // The location of the camera from the centre of the robot
+    public static Pose2d diamondTapeCamera = robotSpecific(
+                                                new Pose2d(), 
+                                                new Pose2d(), 
+                                                new Pose2d(),
+                                                new Pose2d(0.3, -0.174, Rotation2d.fromDegrees(0)));
+
+
+
 
     // TrajectoryConfig & TrajectoryConstraint - needed to construct a trajectory
     public static TrajectoryConstraint autoVoltageConstraint = new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(Config.ksVolts,

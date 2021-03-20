@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -32,9 +33,13 @@ import frc.robot.commands.*;
 import frc.robot.config.Config;
 import frc.robot.sensors.AnalogSelector;
 import frc.robot.subsystems.*;
+import frc.robot.commands.ramseteAuto.DriveToWaypoint;
 import frc.robot.commands.ramseteAuto.PassThroughWaypoint;
+import frc.robot.commands.ramseteAuto.PoseScaled;
 import frc.robot.commands.ramseteAuto.RamseteCommandMerge;
+import frc.robot.commands.ramseteAuto.TranslationScaled;
 import frc.robot.commands.ramseteAuto.VisionPose;
+import frc.robot.commands.ramseteAuto.VisionPose.VisionType;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -156,8 +161,11 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
+        // Testing forced numbers
+        int selectFolder = 2;
+        int selectPath = 3;
 
-        int selectorOne = 1;
+        int selectorOne = 0;
 
         if (analogSelectorOne != null){
             selectorOne = analogSelectorOne.getIndex();
@@ -166,9 +174,22 @@ public class RobotContainer {
         logger.info("Selectors: " + selectorOne);
 
         if (Config.hasSelectorSwitches == false) {
-            selectorOne = 10;
+            selectorOne = selectPath;
             logger.info("No Selector Switches - Forced Id: " + selectorOne);
         }
+        
+        switch (selectFolder) {
+            case 1:
+                return getAutoCommandTest(selectorOne);
+
+            case 2:
+                return getAutoCommandIRAH(selectorOne);
+        }
+
+        return null;
+    }
+
+    private Command getAutoCommandTest(int selectorOne) {
 
         if (selectorOne == 0) {
             // This is our 'do nothing' selector
@@ -187,13 +208,21 @@ public class RobotContainer {
 
             return new RunCommand(() -> DriveBaseHolder.getInstance().tankDriveVelocities(vel, vel, feedforward.calculate(vel), feedforward.calculate(vel)));
 
+        
+            /** 
+             * TESTING RAMSETE PATH
+             * 
+             */
         } else if(selectorOne == 4) {
-            // Run a example ramsete command
-            Command resetOdometry = new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d()), DriveBaseHolder.getInstance());
             
             Trajectory trajectory = TrajectoryGenerator.generateTrajectory(List.of(
-                new Pose2d(), new Pose2d(2.5, -0.5, Rotation2d.fromDegrees(0))), 
+                new Pose2d(), 
+                new Pose2d(2.0, 0, Rotation2d.fromDegrees(0))), 
                 Config.trajectoryConfig.setStartVelocity(0).setEndVelocity(0).setReversed(false));
+
+            // Run a example ramsete command
+            Command resetOdometry = new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory.sample(0).poseMeters), DriveBaseHolder.getInstance());
+            
 
             return resetOdometry.andThen(new RamseteCommandMerge(trajectory, "R4-SingleTraj"));
 
@@ -309,13 +338,131 @@ public class RobotContainer {
 
             // return ramsete;
             return new ParallelCommandGroup(ramsete,
-                    new PassThroughWaypoint(ramsete, VisionPose.VisionType.TPracticeTarget, 8, trajectory1.sample(trajectory1.getTotalTimeSeconds()).poseMeters, 0),
+                    new PassThroughWaypoint(ramsete, VisionPose.VisionType.TPracticeTarget, 8, trajectory1.sample(trajectory1.getTotalTimeSeconds()).poseMeters, 0, 0.5),
                     new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d()))); 
         }
 
 
         // Also return null if this ever gets to here because safety
         return null;
+    }
+
+    private Command getAutoCommandIRAH(int selectorOne) {
+        switch (selectorOne) {
+
+            case 0:
+                return null;
+
+            case 1:{
+                /** Bounce path  */
+                Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                    new PoseScaled(),
+                    new PoseScaled()),
+                    VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTurnAroundSpeed, true));
+                RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P1");
+
+                Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(
+                    endPose(trajectory1),
+                    List.of(new TranslationScaled()),
+                    new PoseScaled(),
+                    VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, VisionType.MiddleOfCones));
+                RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "IRAH-Bounce-P2");
+
+                Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(List.of(
+                    endPose(trajectory2),
+                    new PoseScaled()),
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTurnAroundSpeed, VisionType.MiddleOfCones));
+                RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAH-Bounce-P3");
+
+                Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(
+                    endPose(trajectory3), List.of(
+                    new TranslationScaled(0, 0), 
+                    new TranslationScaled(0, 0), 
+                    new TranslationScaled(0, 0)),
+                    new PoseScaled(),
+                    VisionPose.getInstance().getTrajConfig(0, 0, VisionType.DiamondTape));
+                RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory4, "IRAH-Bounce-P4");
+
+                Trajectory trajectory5 = TrajectoryGenerator.generateTrajectory(List.of(
+                    endPose(trajectory4),
+                    new PoseScaled()),
+                    VisionPose.getInstance().getTrajConfig(0, 0, VisionType.MiddleOfCones));
+                RamseteCommandMerge ramsete5 = new RamseteCommandMerge(trajectory5, "IRAH-Bounce-P5");
+
+                double waypointRadiusMeters = 0.5;
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                    ramsete1,
+                    new ParallelRaceGroup(ramsete2, new PassThroughWaypoint(ramsete2, VisionType.MiddleOfCones, 6, ramsete2.getTargetPose(), Config.kRamseteTransferSpeed, waypointRadiusMeters)),
+                    new ParallelRaceGroup(ramsete3, new PassThroughWaypoint(ramsete3, VisionType.MiddleOfCones, 6, ramsete3.getTargetPose(), Config.kRamseteTurnAroundSpeed, waypointRadiusMeters)),
+                    new ParallelRaceGroup(ramsete4, new DriveToWaypoint(ramsete4, VisionType.DiamondTape, 10, Config.kRamseteTurnAroundSpeed)),
+                    new ParallelRaceGroup(ramsete5, new PassThroughWaypoint(ramsete5, VisionType.MiddleOfCones, 6, ramsete4.getTargetPose(), 0, waypointRadiusMeters))
+                );
+            }
+            case 2:{
+                // Barrel Racing path
+
+                Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(new PoseScaled(0.922, -2.357, 0.0), 
+                  List.of(
+                    new TranslationScaled(),
+                    new TranslationScaled(),
+                    new TranslationScaled(),
+                    new TranslationScaled() ),
+                    new PoseScaled(),
+                    VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, VisionType.DiamondTape));
+                RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAH-Barrel-P1");
+                
+                Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of( 
+                    new PoseScaled(), 
+                    new PoseScaled()), 
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, VisionType.DiamondTape));
+                RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "IRAH-Barrel-P2");
+
+                Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(new PoseScaled(), 
+                  List.of(
+                    new TranslationScaled(),
+                    new TranslationScaled(),
+                    new TranslationScaled()),
+                    new PoseScaled(),
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, VisionType.DiamondTape));
+                RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAH-Barrel-P3");
+                
+
+                Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(List.of( 
+                    new PoseScaled(), 
+                    new PoseScaled()), 
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, VisionType.DiamondTape));
+                RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory4, "IRAH-Barrel-P4");
+
+                Trajectory trajectory5 = TrajectoryGenerator.generateTrajectory(new PoseScaled(), 
+                  List.of(
+                    new TranslationScaled(),
+                    new TranslationScaled(),
+                    new TranslationScaled()),
+                    new PoseScaled(),
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, VisionType.MiddleOfCones));
+                RamseteCommandMerge ramsete5 = new RamseteCommandMerge(trajectory5, "IRAH-Barrel-P5");
+            
+            }
+            
+        }
+
+        // If nothing runs do nothing
+        return null;   
+
+    }
+
+    /**
+     * Helper method for constructing trajectories. Gets the final pose of a given trajectory.
+     * 
+     * RamseteCommandMerge has the same functionality with the getTargetPose() method
+     * 
+     * @param trajectory A given trajectory to find what pose it will end at.
+     * @return The end pose.
+     */
+    private Pose2d endPose(Trajectory trajectory) {
+        return trajectory.sample(trajectory.getTotalTimeSeconds()).poseMeters;
     }
 
     public void joystickRumble(double leftValue, double rightValue) {
