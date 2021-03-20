@@ -346,7 +346,7 @@ public class RobotContainer {
                 return null;
 
             case 1:{
-                // Bounce path
+                /** Bounce path  */
                 Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
                     new PoseScaled(),
                     new PoseScaled()),
@@ -354,32 +354,32 @@ public class RobotContainer {
                 RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P1");
 
                 Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(
-                    new PoseScaled(),
+                    endPose(trajectory1),
                     List.of(new TranslationScaled()),
                     new PoseScaled(),
                     VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, VisionType.MiddleOfCones));
-                RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P2");
+                RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "IRAH-Bounce-P2");
 
                 Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(List.of(
-                    new PoseScaled(),
+                    endPose(trajectory2),
                     new PoseScaled()),
                     VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTurnAroundSpeed, VisionType.MiddleOfCones));
-                RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P3");
+                RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAH-Bounce-P3");
 
                 Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(
-                    new PoseScaled(0, 0, 0), List.of(
+                    endPose(trajectory3), List.of(
                     new TranslationScaled(0, 0), 
                     new TranslationScaled(0, 0), 
                     new TranslationScaled(0, 0)),
                     new PoseScaled(),
                     VisionPose.getInstance().getTrajConfig(0, 0, VisionType.DiamondTape));
-                RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P4");
+                RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory4, "IRAH-Bounce-P4");
 
                 Trajectory trajectory5 = TrajectoryGenerator.generateTrajectory(List.of(
-                    new PoseScaled(),
+                    endPose(trajectory4),
                     new PoseScaled()),
                     VisionPose.getInstance().getTrajConfig(0, 0, VisionType.MiddleOfCones));
-                RamseteCommandMerge ramsete5 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P5");
+                RamseteCommandMerge ramsete5 = new RamseteCommandMerge(trajectory5, "IRAH-Bounce-P5");
 
                 double waypointRadiusMeters = 0.5;
 
@@ -437,23 +437,25 @@ public class RobotContainer {
                 RamseteCommandMerge ramsete5 = new RamseteCommandMerge(trajectory5, "IRAH-Barrel-P5");
             
             }
-
-
-
-
-
+            
         }
 
         // If nothing runs do nothing
-        return null;
-
-        
-
-
+        return null;   
 
     }
 
-    
+    /**
+     * Helper method for constructing trajectories. Gets the final pose of a given trajectory.
+     * 
+     * RamseteCommandMerge has the same functionality with the getTargetPose() method
+     * 
+     * @param trajectory A given trajectory to find what pose it will end at.
+     * @return The end pose.
+     */
+    private Pose2d endPose(Trajectory trajectory) {
+        return trajectory.sample(trajectory.getTotalTimeSeconds()).poseMeters;
+    }
 
     public void joystickRumble(double leftValue, double rightValue) {
         //Joystick rumble (driver feedback). leftValue/rightValue sets vibration force.

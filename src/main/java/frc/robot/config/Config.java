@@ -236,6 +236,10 @@ public class Config {
     // Change the side of the vision data since gyro is counter-clockwise positive
     public static byte VISION_FLIP_ANGLE = -1;
 
+    // Set whether to use the vision perpendicular angle or the gyro to figure out 
+    // the rotation at a vision target
+    public static boolean useVisionPerpendicularAngle = false;
+    
     // The location of the camera from the centre of the robot
     public static Pose2d middleOfConesCameraLocation = robotSpecific(
                                             new Pose2d(), 

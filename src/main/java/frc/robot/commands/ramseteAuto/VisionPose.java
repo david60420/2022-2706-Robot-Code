@@ -36,6 +36,10 @@ import frc.robot.subsystems.DriveBaseHolder;
 
 
 public class VisionPose {
+    // Important boolean to set
+    private final boolean usePerpendicularAngle = Config.useVisionPerpendicularAngle;
+
+
     // static variable single_instance of type Singleton 
     private static VisionPose single_instance = null;
 
@@ -279,6 +283,14 @@ public class VisionPose {
      * 
      * Null means they don't match up
      * 
+     * If usePerpendicularAngle is set to false this method will take the angle from desiredFieldPose
+     * and overwrite the angle of visionFieldPose (which was calculated using the perpendicular angle).
+     * This means the robot is reliant on the gyro to accurate, which is not the case over long periods
+     * of time.
+     * 
+     * The rotation target & field pose must be the rotation the robot should be at that pose when it
+     * drives through the pose. If its backwards then its 180 deg opposite of what it would be forwards.
+     * 
      * @param knownTarget Previously found targets
      * @param visionFieldPose calculated pose with field origin
      * @param targetFieldPose known pose of target with field origin
@@ -291,7 +303,14 @@ public class VisionPose {
 
         double distanceBetween = visionFieldPose.getTranslation().getDistance(targetFieldPose.getTranslation());
 
+        // If the distance between is less than the allowable error its a known target
         if (Math.abs(distanceBetween) < Config.ALLOWABLE_VISION_ODOMETRY_ERROR) {
+
+            // Check whether to use gyro to handle perpendicular angle
+            if (usePerpendicularAngle == false) {
+                // Set the calculated pose to what it should be on field oriented dimensions. Reliant on gyro.
+                visionFieldPose = new Pose2d(visionFieldPose.getTranslation(), targetFieldPose.getRotation());
+            }
             return visionFieldPose;
         }
         return null;
@@ -303,6 +322,9 @@ public class VisionPose {
      * 
      * If the target is a known target this method will apply a desired offset to the field pose.
      * The offset is calculated between the known location of the target and the desired location.
+     * 
+     * The rotation target & field pose must be the rotation the robot should be at that pose when it
+     * drives through the pose. If its backwards then its 180 deg opposite of what it would be forwards.
      * 
      * @param knownTarget Whether a target has been matched yet
      * @param visionFieldPose Pose with a field origin calculated from vision data
@@ -319,10 +341,19 @@ public class VisionPose {
         // Check if it's a known target
         visionFieldPose = checkKnownTarget(knownTarget, visionFieldPose, targetFieldPose); 
 
-        // If it's a known target to a transform and return the new pose
-        // The transformation is the delta between the known target location and desired pose location
+        // If it's a known target, do some additionaly math to visionFieldPose
         if (visionFieldPose != null) {
+
+             // The transformation is the delta between the known target location and desired pose location
             visionFieldPose = transformPose(visionFieldPose, targetFieldPose.relativeTo(desiredFieldPose));
+
+            // Check whether to use gyro to handle perpendicular angle
+            // This method wants the desired field angle to be the angle
+            if (usePerpendicularAngle == false) {
+                // Set the calculated pose to what it should be on field oriented dimensions. Reliant on gyro.
+                visionFieldPose = new Pose2d(visionFieldPose.getTranslation(), desiredFieldPose.getRotation());
+            }
+
             return visionFieldPose;
         }
         
@@ -359,17 +390,26 @@ public class VisionPose {
         // Change distance to meters
         distanceToTarget = feetToMeters(distanceToTarget);
 
-        // Calculate Relative Pose
+        /** Calculate Relative Pose (origin defined as centre of robot) */
+
+        // Calculate relative pose to camera (origin defined as centre of camera)
         Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
         Translation2d translation = new Translation2d(distanceToTarget, angle); // distance*cosTheta, distance*sinTheta
         Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees(angleAtTarget));
 
-        // Change origin from camera location to robot origin, aka centre of robot.
+        // Calculate relative pose to robot centre (origin defined as centre of robot)
         relativePose = transformCameraToCentre(relativePose, middleOfConesCamera, false);
 
-        // Use odometry to calculate pose with a nominal field origin 
+        /** Calculate Field Pose (origin defined as "field" origin) */
+        // Odometry knowns centre of robot location  (origin of field),
+        // vision knowns target location (origin centre of robot)
         Pose2d fieldPose = transformPoseToField(relativePose);
         
+        // If the robot is driving backwards the rotation of the angle also needs to be backwards
+        if (getReversed(VisionType.DiamondTape)) {
+            fieldPose = new Pose2d(fieldPose.getTranslation(), fieldPose.getRotation().rotateBy(Rotation2d.fromDegrees(180)));
+        }
+
 
         // Stores the calculated pose if it's near a known target
         Pose2d knownTarget = null;
@@ -393,14 +433,14 @@ public class VisionPose {
                 break;
             }
             case Bounce: {
-                // First Middle of Cones 
-                knownTarget = checkKnownTarget(knownTarget, fieldPose, new PoseScaled(), new PoseScaled()); //FILLOUT
+                // First Middle of Cones (D3 to D5)
+                knownTarget = checkKnownTarget(knownTarget, fieldPose, new PoseScaled(3.0, -3.1, 90), new PoseScaled(3.0, -3.1, 90+25)); //PATHWEAVER-DATA
 
-                // Second Middle of Cones for second starred marker
-                knownTarget = checkKnownTarget(knownTarget, fieldPose, new PoseScaled(), new PoseScaled()); //FILLOUT
+                // Second Middle of Cones for second starred marker (B5 to B7)
+                knownTarget = checkKnownTarget(knownTarget, fieldPose, new PoseScaled(4.58, -1.56, -90), new PoseScaled(4.58, -1.11, -90)); //PATHWEAVER-DATA
 
-                // End zone Middle of Cones
-                knownTarget = checkKnownTarget(knownTarget, fieldPose, new PoseScaled()); //FILLOUT
+                // End zone Middle of Cones (B10 to D10)
+                knownTarget = checkKnownTarget(knownTarget, fieldPose, new PoseScaled(7.58, -2.28, 0)); //PATHWEAVER-DATA 
 
                 break;
             }
@@ -428,17 +468,22 @@ public class VisionPose {
         // Change distance to meters
         distanceToTarget = feetToMeters(distanceToTarget);
 
-        // Calculate Relative Pose
+        // Calculate Relative Pose (origin defined as centre of robot)
         Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
         Translation2d translation = new Translation2d(distanceToTarget, angle); // distance*cosTheta, distance*sinTheta
-        Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees(angleAtTarget));
+        Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees(angleAtRobot - angleAtTarget));
 
         // Change origin from camera location to robot origin, aka centre of robot.
         relativePose = transformCameraToCentre(relativePose, diamondTapeCamera, false);
 
         // Use odometry to calculate pose with a nominal field origin 
+        // Odometry knowns centre of robot location (origin defined as "field" origin)
         Pose2d fieldPose = transformPoseToField(relativePose);
-        
+
+        // If the robot is driving backwards the rotation of the angle also needs to be backwards
+        if (getReversed(VisionType.DiamondTape)) {
+            fieldPose = new Pose2d(fieldPose.getTranslation(), fieldPose.getRotation().rotateBy(Rotation2d.fromDegrees(180)));
+        }
 
         // Stores the calculated pose if it's near a known target
         Pose2d knownTarget = null;
@@ -457,7 +502,7 @@ public class VisionPose {
             case Slalom: break;
             case Bounce: {
                 // First Diamond for third starred marker
-                knownTarget = checkKnownTarget(knownTarget, fieldPose, new PoseScaled(), new PoseScaled()); //FILLOUT
+                knownTarget = checkKnownTarget(knownTarget, fieldPose, new PoseScaled(6.872, -4.6, 90), new PoseScaled(6.872, -1, 90)); //PATHWEAVER-DATA
 
                 break;
             }
