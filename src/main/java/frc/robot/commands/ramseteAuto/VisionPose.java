@@ -440,7 +440,7 @@ public class VisionPose {
                 knownTarget = checkKnownTarget(knownTarget, fieldPose, new PoseScaled(4.58, -1.56, -90), new PoseScaled(4.58, -1.11, -90)); //PATHWEAVER-DATA
 
                 // End zone Middle of Cones (B10 to D10)
-                knownTarget = checkKnownTarget(knownTarget, fieldPose, new PoseScaled(7.58, -2.28, 0)); //PATHWEAVER-DATA 
+                knownTarget = checkKnownTarget(knownTarget, fieldPose, new PoseScaled(7.58, -2.28, 180)); //PATHWEAVER-DATA 
 
                 break;
             }
