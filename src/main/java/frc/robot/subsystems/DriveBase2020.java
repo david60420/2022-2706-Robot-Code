@@ -339,10 +339,10 @@ public class DriveBase2020 extends DriveBase {
             leftEncoder.setNumber(getLeftPosition());
             rightEncoder.setNumber(getRightPosition());
 
-        Pose2d pose = getPose();
-        // currentX.setNumber(pose.getX());
-        // currentY.setNumber(pose.getY());
-        currentAngle.setNumber(pose.getRotation().getDegrees());
+            Pose2d pose = getPose();
+            currentX.setNumber(pose.getX());
+            currentY.setNumber(pose.getY());
+            currentAngle.setNumber(pose.getRotation().getDegrees());
         }
 
         // System.out.println("VISION TARGET: " + VisionPose.getInstance().getTargetTranslation(VisionType.TPracticeTarget)); 

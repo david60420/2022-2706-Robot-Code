@@ -223,7 +223,7 @@ public class Config {
 
     // Ramsete Max Velocity and max acceleration
     public static double kMaxSpeedMetersPerSecond = 1.0;
-    public static double kMaxAccelerationMetersPerSecondSquared = 0.5; 
+    public static double kMaxAccelerationMetersPerSecondSquared = 0.25;//0.5; 
     
     public static double kRamseteTransferSpeed = kMaxSpeedMetersPerSecond;
     public static double kRamseteTurnAroundSpeed = kMaxSpeedMetersPerSecond; 
@@ -232,7 +232,7 @@ public class Config {
     public static double METERS_IN_ONE_FOOT = 0.3048;
     // Scale the field
     private static double defaultScale = 1.0;
-    public static double scaleField = robotSpecific(defaultScale, defaultScale, 0.5, defaultScale);
+    public static double scaleField = robotSpecific(defaultScale, defaultScale, 1.0, defaultScale);
 
     // VISION STUFF BELOW
     // Allowable vision error in meters
