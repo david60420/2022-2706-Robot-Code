@@ -104,11 +104,11 @@ public class Config {
     
     // Invert talons to consider forward as forward (same practice for all objects)
     public static boolean LEFT_FRONT_INVERTED = robotSpecific(false, false, false, false);
-    public static boolean RIGHT_FRONT_INVERTED = robotSpecific(false, true, false, true);
+    public static boolean RIGHT_FRONT_INVERTED = robotSpecific(false, true, true, true);
     public static boolean LEFT_REAR_INVERTED = robotSpecific(false, false, false, false);
     public static boolean RIGHT_REAR_INVERTED = robotSpecific(false, true, false, true);
-    public static boolean DRIVETRAIN_LEFT_SENSORPHASE = robotSpecific(false, true, false, true);
-    public static boolean DRIVETRAIN_RIGHT_SENSORPHASE = robotSpecific(false, true, false, true);
+    public static boolean DRIVETRAIN_LEFT_SENSORPHASE = robotSpecific(false, true, true, true);
+    public static boolean DRIVETRAIN_RIGHT_SENSORPHASE = robotSpecific(false, true, true, true);
 
     public static boolean DRIVETRAIN_INVERT_DIFFERENTIALDRIVE = robotSpecific(false, false, false, false);
 
@@ -282,7 +282,7 @@ public class Config {
     public static double RAMSETE_ALLOWABLE_PID_ERROR = 0; // <- never stop the P loop from running
     public static double RAMSETE_VOLTAGE_COMPENSATION = 12;
 
-    public static boolean hasSelectorSwitches = robotSpecific(true, false, true, false);
+    public static boolean hasSelectorSwitches = robotSpecific(true, false, false, false);
 
     public static final FluidConstant<Integer> RPM = new FluidConstant<>("Shooter RPM", 1700)
             .registerToTable(Config.constantsTable);

@@ -162,8 +162,8 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // Testing forced numbers
-        int selectFolder = 2;
-        int selectPath = 3;
+        int selectFolder = 1;
+        int selectPath = 4;
 
         int selectorOne = 0;
 
@@ -204,7 +204,7 @@ public class RobotContainer {
         } else if(selectorOne == 3) {
             // Directly Tell the talons to go both sides a specific value. (For setting inversions)
             SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Config.ksVolts, Config.kvVoltSecondsPerMeter, Config.kaVoltSecondsSquaredPerMeter);
-            double vel = 2.0;
+            double vel = 1.0;
 
             return new RunCommand(() -> DriveBaseHolder.getInstance().tankDriveVelocities(vel, vel, feedforward.calculate(vel), feedforward.calculate(vel)));
 
@@ -217,7 +217,7 @@ public class RobotContainer {
             
             Trajectory trajectory = TrajectoryGenerator.generateTrajectory(List.of(
                 new Pose2d(), 
-                new Pose2d(2.0, 0, Rotation2d.fromDegrees(0))), 
+                new Pose2d(2.0, 1.0, Rotation2d.fromDegrees(0))), 
                 Config.trajectoryConfig.setStartVelocity(0).setEndVelocity(0).setReversed(false));
 
             // Run a example ramsete command
