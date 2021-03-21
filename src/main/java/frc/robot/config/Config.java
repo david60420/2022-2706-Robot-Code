@@ -67,7 +67,7 @@ public class Config {
     /**
      * ID of the robot that code is running on
      */
-    private static int robotId = -1;
+    public static int robotId = -1;
     
     /**
      * PLACE IDS OF ROBOTS HERE
@@ -253,6 +253,11 @@ public class Config {
                                                 new Pose2d(), 
                                                 new Pose2d(),
                                                 new Pose2d(0.3, -0.174, Rotation2d.fromDegrees(0)));
+
+    public static final String RELAY_NETWORKTABLE = "ControlRelay";
+    public static final int RELAY_RINGLIGHT_REAR_SMALL = 1; // NUMBERS NOT ACCURATELY RELATED TO CAMERAS YET
+    public static final int RELAY_RINGLIGHT_REAR_LARGE = 2;
+    public static final int RELAY_RINGLIGHT_FRONT = 3;
 
 
 

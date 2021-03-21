@@ -96,6 +96,12 @@ public class RobotContainer {
             armSubsystem = ArmSubsystem.getInstance();
 
         configureButtonBindings();
+
+        // Only construct the RelaySubsystem if it has relays which is only on mini bot
+        // Atm the only way to tell if its the mini bot is if it has follower motors
+        if (Config.robotId == 2) {
+            RelaySubsystem.getInstance();
+        }
     }
 
     /**
