@@ -7,6 +7,7 @@ package frc.robot.commands.ramseteAuto;
 import java.util.List;
 
 import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
@@ -26,6 +27,8 @@ public class PassThroughWaypoint extends CommandBase {
   private final Pose2d endPose2d;
   private final double endVelocity;
   private final double waypointRadiusMeters;
+  private final Pose2d visionSpotPose;
+  private Pose2d desiredPose;
   private Pose2d waypointPose2d;
   private int frequency; //The command will calculate a new trajectory every x cycles 
   private int cyclesToRecalculation;
@@ -33,20 +36,57 @@ public class PassThroughWaypoint extends CommandBase {
   // Logging
   private Logger logger = Logger.getLogger("PassThroughWaypoint");
 
-  /** Creates a new PassThroughWaypoint. */
-  public PassThroughWaypoint(RamseteCommandMerge ramseteCommand, VisionType visionType, double endAfterTime, Pose2d endPose2d, 
-                            double endVelocity, double waypointRadiusMeters) {
-    // Use addRequirements() here to declare subsystem dependencies.
+  /** 
+   * Creates a PassThroughWaypoint where the robot will drive through the desired pose, given the location of visionSpotPose. 
+   * VisionSpot being the location of the vision target/spot.
+   * 
+   * Angle of vision pose should be as if the robot was to drive through the vision spot forwards (as this is what VisionPose will calculate)
+   * If the robot is supposed to drive through backwards, desiredPose & endPose should be 180deg + what it would be when driving forwards
+   */
+  public PassThroughWaypoint(RamseteCommandMerge ramseteCommand, 
+                              Pose2d endPose2d, 
+                              Pose2d visionSpotPose, 
+                              Pose2d desiredPose, 
+                              VisionType visionType, 
+                              double endAfterTime, 
+                              double endVelocity, 
+                              double waypointRadiusMeters) {
 
     this.ramseteCommand = ramseteCommand;
+    this.endPose2d = endPose2d;
+    this.visionSpotPose = visionSpotPose;
+    this.desiredPose = desiredPose;
     this.visionType = visionType;
     this.endAfterTime = endAfterTime;
-    this.endPose2d = endPose2d;
     this.endVelocity = endVelocity;
     this.waypointRadiusMeters = waypointRadiusMeters;
 
     logger.addHandler(Config.logFileHandler);
     this.frequency = 5;
+  }
+
+  /** 
+   * Creates a PassThroughWaypoint where the robot will drive through the visionSpotPose.
+   * 
+   * Angle of vision pose should be as if the robot was to drive through the vision spot forwards (as this is what VisionPose will calculate)
+   * Code will correct if the robot should drive through backwards
+   */
+  public PassThroughWaypoint(RamseteCommandMerge ramseteCommand, 
+                              Pose2d endPose2d, 
+                              Pose2d visionSpotPose, 
+                              VisionType visionType, 
+                              double endAfterTime, 
+                              double endVelocity, 
+                              double waypointRadiusMeters) {
+                              
+    // Set desired pose equal to vision pose since we want to drive through visionPose.
+    this(ramseteCommand, endPose2d, visionSpotPose, visionSpotPose, visionType, endAfterTime, endVelocity, waypointRadiusMeters);
+    
+    // If the robot should drive through backwards then the desired rotation needs to be 180 deg plus the value return from VisionPose
+    if (VisionPose.getInstance().getReversed(visionType)) {
+      this.desiredPose = new Pose2d(this.desiredPose.getTranslation(), this.desiredPose.getRotation().rotateBy(Rotation2d.fromDegrees(180)));
+    }
+
   }
 
   // Called when the command is initially scheduled.
@@ -68,8 +108,20 @@ public class PassThroughWaypoint extends CommandBase {
     if(cyclesToRecalculation == 0){
       cyclesToRecalculation = frequency - 1;
 
-      // If the translation isn't null, generate the trajectory
-      if(waypointPose2d != null){
+      // If the translation isn't null and
+      // If the waypointPose2d is within a radius of the target we want,
+      // generate the trajectory
+      if(waypointPose2d != null && isAtWaypoint(visionSpotPose, waypointPose2d, Config.ALLOWABLE_VISION_ODOMETRY_ERROR)){
+
+        // Transform the waypointPose2d by the delta between visionPose and desiredPose
+        waypointPose2d = visionPoseInst.transformPose(waypointPose2d, visionSpotPose.relativeTo(desiredPose));
+
+        // Check whether to use gyro to handle perpendicular angle
+        if (Config.useVisionPerpendicularAngle == false) {
+          // Overwrite the calculated rotation to what it should be on field oriented dimensions. Reliant on gyro.
+          waypointPose2d = new Pose2d(waypointPose2d.getTranslation(), desiredPose.getRotation());
+        }
+
         Trajectory trajectory;
         try {
           //Get current robot velocities for left and right sides and find the average
@@ -117,7 +169,7 @@ public class PassThroughWaypoint extends CommandBase {
     return false;
   }
 
-  //Set recaclulation frequency to new value
+  //Set recalculation frequency to new value
   public void setFrequency(int frequency){
     this.frequency = frequency;
   }

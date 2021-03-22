@@ -79,14 +79,13 @@ public class DriveToWaypoint extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    VisionPose visionPoseInst = VisionPose.getInstance();
+      
+    // Ask VisionPose for the pose of the endpoint
+    Pose2d endPose2d = visionPoseInst.getTargetPose(visionType);
 
     if(cyclesToRecalculation == 0){
       cyclesToRecalculation = frequency - 1;
-
-      VisionPose visionPoseInst = VisionPose.getInstance();
-      
-      // Ask VisionPose for the pose of the endpoint
-      Pose2d endPose2d = visionPoseInst.getTargetPose(visionType);
 
       // If the translation isn't null and
       // If the endPose is within a radius of the target we want, 

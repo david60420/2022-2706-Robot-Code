@@ -350,7 +350,7 @@ public class RobotContainer {
 
             // return ramsete;
             return new ParallelCommandGroup(ramsete,
-                    new PassThroughWaypoint(ramsete, VisionPose.VisionType.TPracticeTarget, 8, trajectory1.sample(trajectory1.getTotalTimeSeconds()).poseMeters, 0, 0.5),
+                    // new PassThroughWaypoint(ramsete, endPose(trajectory1), VisionPose.VisionType.TPracticeTarget, 8, 0, 0.5),
                     new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(new Pose2d()))); 
         }
 
@@ -373,34 +373,40 @@ public class RobotContainer {
                     VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTurnAroundSpeed, true));
                 RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P1");
 
+                Pose2d middleOfConesD3toD5 = new PoseScaled(3.0, -3.1, 90);
+                Pose2d desiredMiddleOfConesD3toD5 = new PoseScaled(3.0, -3.1, 90+25);
                 Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
                     endPose(trajectory1),
-                    new PoseScaled(3.0, -3.1, 90+25), // MATCH-VisionPose First MiddleOfCones 
+                    desiredMiddleOfConesD3toD5,
                     new PoseScaled(3.9, -3.95, 180)),
                     VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, VisionType.MiddleOfCones));
                 RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "IRAH-Bounce-P2");
 
+                Pose2d middleOfConesD5toD7 = new PoseScaled(4.6, -3.1, -90);
+                Pose2d middleOfConesB5toB7 = new PoseScaled(4.58, -1.56, -90);
+                Pose2d desiredMiddleOfConesB5toB7 = new PoseScaled(4.58, -1.11, -90);
                 Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(List.of(
                     endPose(trajectory2),
-                    new PoseScaled(4.6, -3.1, -90), // MATCH-Trajectory4
-                    new PoseScaled(4.58, -1.11, -90)),  // MATCH-VisionPose
+                    middleOfConesD5toD7,
+                    desiredMiddleOfConesB5toB7),
                     VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTurnAroundSpeed, VisionType.MiddleOfCones));
                 RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAH-Bounce-P3");
 
                 PoseScaled bounceFirstDiamondMarkerA9 = new PoseScaled(6.872, -1, 90);
                 Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(List.of(
                     endPose(trajectory3), 
-                    new PoseScaled(4.6, -3.1, -90), // MATCH-Trajectory3
+                    middleOfConesD5toD7, 
                     new PoseScaled(5.75, -3.8, 0), 
                     new PoseScaled(6.86, -3.1 , 90),
                     bounceFirstDiamondMarkerA9), 
                     VisionPose.getInstance().getTrajConfig(0, 0, VisionType.DiamondTape));
                 RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory4, "IRAH-Bounce-P4");
 
+                Pose2d middleOfConesB10toD10 = new PoseScaled(7.58, -2.28, 180);
                 Trajectory trajectory5 = TrajectoryGenerator.generateTrajectory(
                     endPose(trajectory4), List.of(
                     new TranslationScaled(7.16, -1.9),
-                    new TranslationScaled(7.58, -2.28)), // MATCH-VisionPose End zone Middle of Cones (B10 to D10)
+                    middleOfConesB10toD10.getTranslation()),
                     new PoseScaled(8.37, -2.34, 180),
                     VisionPose.getInstance().getTrajConfig(0, 0, VisionType.MiddleOfCones));
                 RamseteCommandMerge ramsete5 = new RamseteCommandMerge(trajectory5, "IRAH-Bounce-P5");
@@ -410,10 +416,10 @@ public class RobotContainer {
                 return new SequentialCommandGroup(
                     new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
                     ramsete1,
-                    new ParallelRaceGroup(ramsete2, new PassThroughWaypoint(ramsete2, VisionType.MiddleOfCones, 6, ramsete2.getTargetPose(), Config.kRamseteTransferSpeed, waypointRadiusMeters)),
-                    new ParallelRaceGroup(ramsete3, new PassThroughWaypoint(ramsete3, VisionType.MiddleOfCones, 6, ramsete3.getTargetPose(), Config.kRamseteTurnAroundSpeed, waypointRadiusMeters)),
+                    new ParallelRaceGroup(ramsete2, new PassThroughWaypoint(ramsete2, endPose(ramsete2), middleOfConesD3toD5, desiredMiddleOfConesD3toD5, VisionType.MiddleOfCones, 6, Config.kRamseteTransferSpeed, waypointRadiusMeters)),
+                    new ParallelRaceGroup(ramsete3, new PassThroughWaypoint(ramsete3, endPose(ramsete3), middleOfConesB5toB7, desiredMiddleOfConesB5toB7, VisionType.MiddleOfCones, 6, Config.kRamseteTurnAroundSpeed, waypointRadiusMeters)),
                     new ParallelRaceGroup(ramsete4, new DriveToWaypoint(ramsete4, VisionType.DiamondTape, 10, Config.kRamseteTurnAroundSpeed, bounceFirstDiamondMarkerA9, new PoseScaled(6.872, -1, 90))),
-                    new ParallelRaceGroup(ramsete5, new PassThroughWaypoint(ramsete5, VisionType.MiddleOfCones, 6, ramsete4.getTargetPose(), 0, waypointRadiusMeters))
+                    new ParallelRaceGroup(ramsete5, new PassThroughWaypoint(ramsete5, endPose(ramsete4), middleOfConesB10toD10, VisionType.MiddleOfCones, 6, 0, waypointRadiusMeters))
                 );
             }
             case 2:{
@@ -492,11 +498,14 @@ public class RobotContainer {
      * 
      * RamseteCommandMerge has the same functionality with the getTargetPose() method
      * 
-     * @param trajectory A given trajectory to find what pose it will end at.
+     * @param - A given trajectory or ramsete command merge to find what pose it will end at.
      * @return The end pose.
      */
     private Pose2d endPose(Trajectory trajectory) {
         return trajectory.sample(trajectory.getTotalTimeSeconds()).poseMeters;
+    }
+    private Pose2d endPose(RamseteCommandMerge ramsete) {
+        return ramsete.getTargetPose();
     }
 
     public void joystickRumble(double leftValue, double rightValue) {

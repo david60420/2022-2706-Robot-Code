@@ -387,6 +387,10 @@ public class VisionPose {
         double angleAtRobot = middleOfConesAngleAtRobot.getDouble(defaultValue) * Config.VISION_FLIP_ANGLE;
         double angleAtTarget = middleOfConesAngleAtTarget.getDouble(defaultValue) * Config.VISION_FLIP_ANGLE;
 
+        if (Config.useVisionPerpendicularAngle == false) {
+            angleAtTarget = 0;
+        }
+
         // Check for "code" that means no data available
         if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99 || (int) angleAtTarget == -99)
             return null;
@@ -419,7 +423,7 @@ public class VisionPose {
         Pose2d fieldPose = transformPoseToField(relativePose);
         
         return fieldPose;
-        
+
         /**
          * MOVED INTO VISION TRAJECTORY COMMANDS
 
@@ -474,6 +478,10 @@ public class VisionPose {
         double distanceToTarget = diamondTapeDistanceToTarget.getDouble(defaultValue);
         double angleAtRobot = diamondTapeAngleAtRobot.getDouble(defaultValue) * Config.VISION_FLIP_ANGLE;
         double angleAtTarget = diamondTapeAngleAtTarget.getDouble(defaultValue) * Config.VISION_FLIP_ANGLE;
+
+        if (Config.useVisionPerpendicularAngle == false) {
+            angleAtTarget = 0;
+        }
 
         // Check for "code" that means no data available
         if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99 || (int) angleAtTarget == -99)
@@ -546,6 +554,10 @@ public class VisionPose {
         double angleAtRobot = tTargetAngleAtRobot.getDouble(-99);
         double angleAtTarget = tTargetAngleAtTarget.getDouble(-99);
 
+        if (Config.useVisionPerpendicularAngle == false) {
+            angleAtTarget = 0;
+        }
+        
         // Check for "code" that means no data available
         if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99 || (int) angleAtTarget == -99)
             return null;
