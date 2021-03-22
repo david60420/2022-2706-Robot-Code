@@ -92,8 +92,10 @@ public class DriveToWaypoint extends CommandBase {
       // generate the trajectory
       if(endPose2d != null && isAtWaypoint(visionSpotPose, endPose2d, Config.ALLOWABLE_VISION_ODOMETRY_ERROR)){
 
-        // Transform the endPose by the delta between visionPose and desiredPose
-        endPose2d = visionPoseInst.transformPose(endPose2d, visionSpotPose.relativeTo(desiredPose));
+        // Offset the endPose by the delta between visionPose and desiredPose
+        Translation2d deltaTranslation = desiredPose.getTranslation().minus(visionSpotPose.getTranslation());
+        Rotation2d deltaRotation = desiredPose.getRotation().rotateBy(visionSpotPose.getRotation().unaryMinus());
+        endPose2d = new Pose2d(endPose2d.getTranslation().plus(deltaTranslation), endPose2d.getRotation().rotateBy(deltaRotation));
 
         // Check whether to use gyro to handle perpendicular angle
         if (Config.useVisionPerpendicularAngle == false) {

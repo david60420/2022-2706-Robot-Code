@@ -113,8 +113,10 @@ public class PassThroughWaypoint extends CommandBase {
       // generate the trajectory
       if(waypointPose2d != null && isAtWaypoint(visionSpotPose, waypointPose2d, Config.ALLOWABLE_VISION_ODOMETRY_ERROR)){
 
-        // Transform the waypointPose2d by the delta between visionPose and desiredPose
-        waypointPose2d = visionPoseInst.transformPose(waypointPose2d, visionSpotPose.relativeTo(desiredPose));
+        // Offset the endPose by the delta between visionPose and desiredPose
+        Translation2d deltaTranslation = desiredPose.getTranslation().minus(visionSpotPose.getTranslation());
+        Rotation2d deltaRotation = desiredPose.getRotation().rotateBy(visionSpotPose.getRotation().unaryMinus());
+        waypointPose2d = new Pose2d(waypointPose2d.getTranslation().plus(deltaTranslation), waypointPose2d.getRotation().rotateBy(deltaRotation));
 
         // Check whether to use gyro to handle perpendicular angle
         if (Config.useVisionPerpendicularAngle == false) {
