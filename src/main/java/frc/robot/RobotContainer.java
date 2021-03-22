@@ -96,6 +96,12 @@ public class RobotContainer {
             armSubsystem = ArmSubsystem.getInstance();
 
         configureButtonBindings();
+
+        // Only construct the RelaySubsystem if it has relays which is only on mini bot
+        // Atm the only way to tell if its the mini bot is if it has follower motors
+        if (Config.robotId == 2) {
+            RelaySubsystem.getInstance();
+        }
     }
 
     /**
@@ -362,36 +368,39 @@ public class RobotContainer {
             case 1:{
                 /** Bounce path  */
                 Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
-                    new PoseScaled(),
-                    new PoseScaled()),
+                    new PoseScaled(0.9, -2.4, 0),
+                    new PoseScaled(2.25, -1, 90)),
                     VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTurnAroundSpeed, true));
                 RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P1");
 
-                Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(
+                Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
                     endPose(trajectory1),
-                    List.of(new TranslationScaled()),
-                    new PoseScaled(),
+                    new PoseScaled(3.0, -3.1, 90+25), // MATCH-VisionPose First MiddleOfCones 
+                    new PoseScaled(3.9, -3.95, 180)),
                     VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, VisionType.MiddleOfCones));
                 RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "IRAH-Bounce-P2");
 
                 Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(List.of(
                     endPose(trajectory2),
-                    new PoseScaled()),
+                    new PoseScaled(4.6, -3.1, -90), // MATCH-Trajectory4
+                    new PoseScaled(4.58, -1.11, -90)),  // MATCH-VisionPose
                     VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTurnAroundSpeed, VisionType.MiddleOfCones));
                 RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAH-Bounce-P3");
 
-                Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(
-                    endPose(trajectory3), List.of(
-                    new TranslationScaled(0, 0), 
-                    new TranslationScaled(0, 0), 
-                    new TranslationScaled(0, 0)),
-                    new PoseScaled(),
+                Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(List.of(
+                    endPose(trajectory3), 
+                    new PoseScaled(4.6, -3.1, -90), // MATCH-Trajectory3
+                    new PoseScaled(5.75, -3.8, 0), 
+                    new PoseScaled(6.86, -3.1 , 90),
+                    new PoseScaled(6.872, -1, 90)), // MATCH-VisionPose First Diamond for third starred marker
                     VisionPose.getInstance().getTrajConfig(0, 0, VisionType.DiamondTape));
                 RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory4, "IRAH-Bounce-P4");
 
-                Trajectory trajectory5 = TrajectoryGenerator.generateTrajectory(List.of(
-                    endPose(trajectory4),
-                    new PoseScaled()),
+                Trajectory trajectory5 = TrajectoryGenerator.generateTrajectory(
+                    endPose(trajectory4), List.of(
+                    new TranslationScaled(7.16, -1.9),
+                    new TranslationScaled(7.58, -2.28)), // MATCH-VisionPose End zone Middle of Cones (B10 to D10)
+                    new PoseScaled(8.37, -2.34, 180),
                     VisionPose.getInstance().getTrajConfig(0, 0, VisionType.MiddleOfCones));
                 RamseteCommandMerge ramsete5 = new RamseteCommandMerge(trajectory5, "IRAH-Bounce-P5");
 
