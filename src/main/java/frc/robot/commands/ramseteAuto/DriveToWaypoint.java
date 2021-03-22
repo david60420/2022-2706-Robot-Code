@@ -7,6 +7,7 @@ package frc.robot.commands.ramseteAuto;
 import java.util.List;
 
 import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
@@ -24,23 +25,48 @@ public class DriveToWaypoint extends CommandBase {
   private final VisionType visionType;
   private final double endAfterTime;
   private final double endVelocity;
+  private final Pose2d visionSpotPose;
+  private Pose2d desiredPose;
   private int frequency; //The command will calculate a new trajectory every x cycles 
   private int cyclesToRecalculation;
 
   // Logging
   private Logger logger = Logger.getLogger("DriveToWaypoint");
 
-  /** Creates a new DriveToWaypoint. */
-  public DriveToWaypoint(RamseteCommandMerge ramseteCommand, VisionType visionType, double endAfterTime, double endVelocity) {
-    // Use addRequirements() here to declare subsystem dependencies.
+  /** 
+   * Creates a DriveToWaypoint where the robot will drive through the desired pose, given the location of visionPose.
+   * 
+   * Angle of vision pose should be as if the robot was to drive through the vision spot forwards (as this is what VisionPose will calculate)
+   * If the robot is supposed to drive through backwards, desiredPose should be 180deg + what it would be when driving forwards
+   */
+  public DriveToWaypoint(RamseteCommandMerge ramseteCommand, VisionType visionType, double endAfterTime, double endVelocity, Pose2d visionSpotPose, Pose2d desiredPose) {
 
     this.ramseteCommand = ramseteCommand;
     this.visionType = visionType;
     this.endAfterTime = endAfterTime;
     this.endVelocity = endVelocity;
+    this.visionSpotPose = visionSpotPose;
+    this.desiredPose = desiredPose;
 
     logger.addHandler(Config.logFileHandler);
     this.frequency = 5;
+  }
+  
+  /** 
+   * Creates a DriveToWaypoint where the robot will drive through the vision pose.
+   * 
+   * Angle of vision pose should be as if the robot was to drive through the vision spot forwards (as this is what VisionPose will calculate)
+   * Code will correct if the robot should drive through backwards
+   */
+  public DriveToWaypoint(RamseteCommandMerge ramseteCommand, VisionType visionType, double endAfterTime, double endVelocity, Pose2d visionSpotPose) {
+
+    // Set desired pose equal to vision pose since we want to drive through visionPose.
+    this(ramseteCommand, visionType, endAfterTime, endVelocity, visionSpotPose, visionSpotPose);
+
+    // If the robot should drive through backwards then the desired rotation needs to be 180 deg plus the value return from VisionPose
+    if (VisionPose.getInstance().getReversed(visionType)) {
+      this.desiredPose = new Pose2d(this.desiredPose.getTranslation(), this.desiredPose.getRotation().rotateBy(Rotation2d.fromDegrees(180)));
+    }
   }
 
   // Called when the command is initially scheduled.
@@ -62,8 +88,20 @@ public class DriveToWaypoint extends CommandBase {
       // Ask VisionPose for the pose of the endpoint
       Pose2d endPose2d = visionPoseInst.getTargetPose(visionType);
 
-      // If the translation isn't null, generate the trajectory
-      if(endPose2d != null){
+      // If the translation isn't null and
+      // If the endPose is within a radius of the target we want, 
+      // generate the trajectory
+      if(endPose2d != null && isAtWaypoint(visionSpotPose, endPose2d, Config.ALLOWABLE_VISION_ODOMETRY_ERROR)){
+
+        // Transform the endPose by the delta between visionPose and desiredPose
+        endPose2d = visionPoseInst.transformPose(endPose2d, visionSpotPose.relativeTo(desiredPose));
+
+        // Check whether to use gyro to handle perpendicular angle
+        if (Config.useVisionPerpendicularAngle == false) {
+          // Overwrite the calculated rotation to what it should be on field oriented dimensions. Reliant on gyro.
+          endPose2d = new Pose2d(endPose2d.getTranslation(), desiredPose.getRotation());
+        }
+
         Trajectory trajectory;
         try {
           //Get current robot velocities for left and right sides and find the average
@@ -113,4 +151,18 @@ public class DriveToWaypoint extends CommandBase {
     this.frequency = frequency;
   }
 
+  //Calculates whether the robot is within a certain radius of the waypoint
+  private boolean isAtWaypoint(Pose2d waypointPose, Pose2d currentPose, double radiusMeters){
+    if(waypointPose != null){
+        //Find X and Y distance between waypointPose and currentPose
+      double deltaX = currentPose.getX() - waypointPose.getX();
+      double deltaY = currentPose.getY() - waypointPose.getY();
+
+      //If distance is less than radiusMeters, return true
+      if(Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)) <= radiusMeters){
+        return true;
+      }
+    }
+    return false;
+  }
 }

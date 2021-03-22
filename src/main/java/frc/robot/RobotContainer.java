@@ -387,12 +387,13 @@ public class RobotContainer {
                     VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTurnAroundSpeed, VisionType.MiddleOfCones));
                 RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAH-Bounce-P3");
 
+                PoseScaled bounceFirstDiamondMarkerA9 = new PoseScaled(6.872, -1, 90);
                 Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(List.of(
                     endPose(trajectory3), 
                     new PoseScaled(4.6, -3.1, -90), // MATCH-Trajectory3
                     new PoseScaled(5.75, -3.8, 0), 
                     new PoseScaled(6.86, -3.1 , 90),
-                    new PoseScaled(6.872, -1, 90)), // MATCH-VisionPose First Diamond for third starred marker
+                    bounceFirstDiamondMarkerA9), 
                     VisionPose.getInstance().getTrajConfig(0, 0, VisionType.DiamondTape));
                 RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory4, "IRAH-Bounce-P4");
 
@@ -411,7 +412,7 @@ public class RobotContainer {
                     ramsete1,
                     new ParallelRaceGroup(ramsete2, new PassThroughWaypoint(ramsete2, VisionType.MiddleOfCones, 6, ramsete2.getTargetPose(), Config.kRamseteTransferSpeed, waypointRadiusMeters)),
                     new ParallelRaceGroup(ramsete3, new PassThroughWaypoint(ramsete3, VisionType.MiddleOfCones, 6, ramsete3.getTargetPose(), Config.kRamseteTurnAroundSpeed, waypointRadiusMeters)),
-                    new ParallelRaceGroup(ramsete4, new DriveToWaypoint(ramsete4, VisionType.DiamondTape, 10, Config.kRamseteTurnAroundSpeed)),
+                    new ParallelRaceGroup(ramsete4, new DriveToWaypoint(ramsete4, VisionType.DiamondTape, 10, Config.kRamseteTurnAroundSpeed, bounceFirstDiamondMarkerA9, new PoseScaled(6.872, -1, 90))),
                     new ParallelRaceGroup(ramsete5, new PassThroughWaypoint(ramsete5, VisionType.MiddleOfCones, 6, ramsete4.getTargetPose(), 0, waypointRadiusMeters))
                 );
             }

@@ -241,13 +241,17 @@ public class Config {
     // Vision code that means no target found
     public static double VISION_NO_TARGET_CODE = -99;
 
-    // Change the side of the vision data since gyro is counter-clockwise positive
-    public static byte VISION_FLIP_ANGLE = -1;
+    // Change the side of the vision data for each type of angle
+    // The desired is to have these as 1 but they are here as backup in case
+    // Put either 1 or -1 which gets multiplied by the angle
+    public static byte VISION_FLIP_ANGLE = 1;
+    public static byte VISION_FLIP_PERPENDICULAR_ANGLE = 1;
 
     // Set whether to use the vision perpendicular angle or the gyro to figure out 
     // the rotation at a vision target
-    public static boolean useVisionPerpendicularAngle = false;
+    public static boolean useVisionPerpendicularAngle = true;
     
+    // If camera is facing backwards then put rotation as 180 degrees
     // The location of the camera from the centre of the robot
     public static Pose2d middleOfConesCameraLocation = robotSpecific(
                                             new Pose2d(), 

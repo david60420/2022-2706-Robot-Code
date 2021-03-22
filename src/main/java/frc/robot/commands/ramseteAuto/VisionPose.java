@@ -21,7 +21,7 @@ import frc.robot.subsystems.DriveBaseHolder;
      * 
      * Add an enum entry for the vision type.
      * 
-     * Switch statements should through warnings. Go through and add
+     * Switch statements should throw warnings. Go through and add
      *    add support for your need vision type.
      * 
      * Write a new calc method for that vision type. Though this could return any pose
@@ -59,7 +59,6 @@ public class VisionPose {
     final Pose2d diamondTapeCamera = Config.diamondTapeCamera;
     final Pose2d middleOfConesCamera = Config.middleOfConesCameraLocation;
 
-    private final byte flipAngle = Config.VISION_FLIP_ANGLE;
     private final double defaultValue = Config.VISION_NO_TARGET_CODE;
 
     NetworkTableEntry tTargetDistanceToTarget;
@@ -76,24 +75,26 @@ public class VisionPose {
 
     private VisionPose() {
 
-        // Test setup
+        // Test setup, T tape
         var table = NetworkTableInstance.getDefault().getTable("Vision2017"); 
         tTargetDistanceToTarget = table.getEntry("tapeDistance");
         tTargetAngleAtRobot = table.getEntry("tapeYaw");
         tTargetAngleAtTarget = table.getEntry("tapeTargetYaw"); // NOT CORRECT
 
+
         // See spreadsheet link below for name of entries, 
-        // sheet name Vision-Robot Code Network Table Interface
+        // sheet name "Vision-Robot Code Network Table Interface"
         // https://docs.google.com/spreadsheets/d/1PnGQ9u9Dbw-_QH5AF-kSOHGbEtmQRehaz8KhUy-qtFo/edit?usp=sharing
 
-        table = NetworkTableInstance.getDefault().getTable("MergeVisionPipelinePi20"); // Double check with vision
+        // Diamond Tape
+        table = NetworkTableInstance.getDefault().getTable("MergeVisionPipelinePi22"); 
 
         diamondTapeDistanceToTarget = table.getEntry("YawToDiamond");
         diamondTapeAngleAtRobot = table.getEntry("DistanceToDiamond");
         diamondTapeAngleAtTarget = table.getEntry("RotationAngleToDiamondPerpendicular");
 
-
-        table = NetworkTableInstance.getDefault().getTable("MergeVisionPipelinePi21"); // Double check with vision
+        // Middle of Cones
+        table = NetworkTableInstance.getDefault().getTable("MergeVisionPipelinePi21");
 
         middleOfConesDistanceToTarget = table.getEntry("DistanceToTwoConeMidpoint");
         middleOfConesAngleAtRobot = table.getEntry("YawToTwoConeMidpoint");
@@ -161,7 +162,7 @@ public class VisionPose {
         return getTrajConfig(startVelocity, endVelocity, getReversed(visionType));
     }
 
-    private boolean getReversed(VisionType visionType) {
+    public boolean getReversed(VisionType visionType) {
         switch (visionType) {
         case MiddleOfCones:
             return true;
@@ -222,7 +223,7 @@ public class VisionPose {
      * field Pose with origin of wherever the Odometry reset it's origin to
      */
     private Pose2d transformPoseToField(Pose2d relativePose) {
-        Transform2d transformToFieldCoordinateSystem = new Transform2d(new Pose2d(), relativePose);
+        Transform2d transformToFieldCoordinateSystem = new Transform2d(relativePose.getTranslation(), relativePose.getRotation());
         return DriveBaseHolder.getInstance().getPose().transformBy(transformToFieldCoordinateSystem); 
     }
 
@@ -236,15 +237,17 @@ public class VisionPose {
     /**
      * Transform camera location to centre of robot
      */
-    private Pose2d transformCameraToCentre(Pose2d relativePose, Pose2d cameraPose, boolean isTranslation) {
-        Pose2d centreRelativePose = null;
-        if (isTranslation) {
-            centreRelativePose = new Pose2d(relativePose.getTranslation().plus(cameraPose.getTranslation()), new Rotation2d(0));
-        } else {
-            centreRelativePose = relativePose.plus(new Transform2d(cameraPose.getTranslation(), cameraPose.getRotation()));
-        }
+    private Pose2d transformCameraToCentre(Pose2d relativePose, Pose2d cameraPose) {
+        // Transform the camera pose by the relative pose. Done in this order since we want the relative
+        // pose to be transformed into the coordinate frame (origin centre of robot) of cameraPose
+        return cameraPose.plus(new Transform2d(relativePose.getTranslation(), relativePose.getRotation()));
+    }
 
-        return centreRelativePose;
+    /**
+     * Transform camera location to centre of robot
+     */
+    private Translation2d transformCameraToCentre(Translation2d relativeCameraTranslation, Pose2d cameraPose) {
+        return transformCameraToCentre(new Pose2d(relativeCameraTranslation, new Rotation2d(0)), cameraPose).getTranslation();
     }
 
 
@@ -274,6 +277,16 @@ public class VisionPose {
      */
     public Pose2d transformPose(Pose2d pose, Pose2d deltaPose) {
         return pose.plus(new Transform2d(deltaPose.getTranslation(), deltaPose.getRotation()));
+    }
+
+    /**
+     * Rotate a pose
+     * @param pose
+     * @param deltaRotation
+     * @return
+     */
+    public Pose2d rotatePose(Pose2d pose, Rotation2d deltaRotation) {
+        return pose.plus(new Transform2d(new Translation2d(), deltaRotation));
     }
 
     
@@ -341,7 +354,7 @@ public class VisionPose {
         // Check if it's a known target
         visionFieldPose = checkKnownTarget(knownTarget, visionFieldPose, targetFieldPose); 
 
-        // If it's a known target, do some additionaly math to visionFieldPose
+        // If it's a known target, do some additional math to visionFieldPose
         if (visionFieldPose != null) {
 
              // The transformation is the delta between the known target location and desired pose location
@@ -371,8 +384,8 @@ public class VisionPose {
 
     private Pose2d calcMiddleOfCones() {
         double distanceToTarget = middleOfConesDistanceToTarget.getDouble(defaultValue);
-        double angleAtRobot = middleOfConesAngleAtRobot.getDouble(defaultValue) * flipAngle;
-        double angleAtTarget = middleOfConesAngleAtTarget.getDouble(defaultValue) * flipAngle;
+        double angleAtRobot = middleOfConesAngleAtRobot.getDouble(defaultValue) * Config.VISION_FLIP_ANGLE;
+        double angleAtTarget = middleOfConesAngleAtTarget.getDouble(defaultValue) * Config.VISION_FLIP_ANGLE;
 
         // Check for "code" that means no data available
         if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99 || (int) angleAtTarget == -99)
@@ -392,24 +405,31 @@ public class VisionPose {
 
         /** Calculate Relative Pose (origin defined as centre of robot) */
 
-        // Calculate relative pose to camera (origin defined as centre of camera)
+        // Calculate relative pose to camera (origin defined as centre of camera, direction camera is facing as angle 0)
         Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
         Translation2d translation = new Translation2d(distanceToTarget, angle); // distance*cosTheta, distance*sinTheta
-        Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees(angleAtTarget));
+        Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees((angleAtRobot - angleAtTarget) * Config.VISION_FLIP_PERPENDICULAR_ANGLE));
 
-        // Calculate relative pose to robot centre (origin defined as centre of robot)
-        relativePose = transformCameraToCentre(relativePose, middleOfConesCamera, false);
+        // Calculate relative pose to robot centre (origin defined as centre of robot, direction towards front of robot as angle 0)
+        relativePose = transformCameraToCentre(relativePose, middleOfConesCamera);
 
         /** Calculate Field Pose (origin defined as "field" origin) */
         // Odometry knowns centre of robot location  (origin of field),
         // vision knowns target location (origin centre of robot)
         Pose2d fieldPose = transformPoseToField(relativePose);
         
+        return fieldPose;
+        
+        /**
+         * MOVED INTO VISION TRAJECTORY COMMANDS
+
+        // TODO: Move this into trajectory commands
         // If the robot is driving backwards the rotation of the angle also needs to be backwards
         if (getReversed(VisionType.DiamondTape)) {
             fieldPose = new Pose2d(fieldPose.getTranslation(), fieldPose.getRotation().rotateBy(Rotation2d.fromDegrees(180)));
         }
 
+        // TODO: Move this into trajectory commands
 
         // Stores the calculated pose if it's near a known target
         Pose2d knownTarget = null;
@@ -446,12 +466,14 @@ public class VisionPose {
             }
         }
         return knownTarget;
+
+        */
     }
 
     private Pose2d calcDiamondTape() {
         double distanceToTarget = diamondTapeDistanceToTarget.getDouble(defaultValue);
-        double angleAtRobot = diamondTapeAngleAtRobot.getDouble(defaultValue) * flipAngle;
-        double angleAtTarget = diamondTapeAngleAtTarget.getDouble(defaultValue) * flipAngle;
+        double angleAtRobot = diamondTapeAngleAtRobot.getDouble(defaultValue) * Config.VISION_FLIP_ANGLE;
+        double angleAtTarget = diamondTapeAngleAtTarget.getDouble(defaultValue) * Config.VISION_FLIP_ANGLE;
 
         // Check for "code" that means no data available
         if ((int) distanceToTarget == -99 || (int) angleAtRobot == -99 || (int) angleAtTarget == -99)
@@ -471,20 +493,25 @@ public class VisionPose {
         // Calculate Relative Pose (origin defined as centre of robot)
         Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
         Translation2d translation = new Translation2d(distanceToTarget, angle); // distance*cosTheta, distance*sinTheta
-        Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees(angleAtRobot - angleAtTarget));
+        Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees((angleAtRobot - angleAtTarget) * Config.VISION_FLIP_PERPENDICULAR_ANGLE));
 
         // Change origin from camera location to robot origin, aka centre of robot.
-        relativePose = transformCameraToCentre(relativePose, diamondTapeCamera, false);
+        relativePose = transformCameraToCentre(relativePose, diamondTapeCamera);
 
         // Use odometry to calculate pose with a nominal field origin 
         // Odometry knowns centre of robot location (origin defined as "field" origin)
         Pose2d fieldPose = transformPoseToField(relativePose);
 
+        return fieldPose;
+        /**
+         * FUNCTIONALITY MOVED INTO COMMANDS THAT USE VISIONPOSE
+         * 
         // If the robot is driving backwards the rotation of the angle also needs to be backwards
         if (getReversed(VisionType.DiamondTape)) {
             fieldPose = new Pose2d(fieldPose.getTranslation(), fieldPose.getRotation().rotateBy(Rotation2d.fromDegrees(180)));
         }
 
+        
         // Stores the calculated pose if it's near a known target
         Pose2d knownTarget = null;
 
@@ -508,6 +535,10 @@ public class VisionPose {
             }
         }
         return knownTarget;
+
+        */
+
+
     }
 
     private Pose2d calcTPracticeTarget() {
@@ -533,10 +564,10 @@ public class VisionPose {
         // Calculate Relative Pose
         Rotation2d angle = Rotation2d.fromDegrees(angleAtRobot);
         Translation2d translation = new Translation2d(distanceToTarget, angle); // math -> distance*cosTheta, distance*sinTheta
-        Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees(angleAtRobot - angleAtTarget *-1)); // Flip angle?
+        Pose2d relativePose = new Pose2d(translation, Rotation2d.fromDegrees((angleAtRobot - angleAtTarget) * Config.VISION_FLIP_PERPENDICULAR_ANGLE)); // Flip angle?
 
         // Change origin from camera location to robot origin, aka centre of robot.
-        relativePose = transformCameraToCentre(relativePose, diamondTapeCamera, false);
+        relativePose = transformCameraToCentre(relativePose, diamondTapeCamera);
 
         System.out.println("RelativePose is " + relativePose.toString());
         // Use odometry to calculate pose with a nominal field origin 
