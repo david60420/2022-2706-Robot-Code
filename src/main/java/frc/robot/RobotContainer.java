@@ -157,6 +157,8 @@ public class RobotContainer {
         Command resetHeading = new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose( new Pose2d()));
         new JoystickButton(driverStick, XboxController.Button.kStart.value).whenActive(resetHeading);
         
+        Command printOdometry = new PrintOdometry();
+        new JoystickButton(driverStick, XboxController.Button.kBack.value).whenPressed(printOdometry);
 
 
         if (Config.FEEDER_SUBSYSTEM_TALON != -1) {
@@ -174,8 +176,8 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // Testing forced numbers
-        int selectFolder = 3;
-        int selectPath = 3;
+        int selectFolder = 4;
+        int selectPath = 1;
 
         int selectorOne = 0;
 
@@ -199,6 +201,9 @@ public class RobotContainer {
 
             case 3:
                 return getAutoCommandIRAHDeepSpaceRobot(selectorOne);
+
+            case 4:
+            return getAutoCommandIRAHPracBot(selectorOne);
         }
 
         return null;
@@ -656,6 +661,73 @@ public class RobotContainer {
         // If nothing runs do nothing
         return null;   
 
+    }
+
+    private Command getAutoCommandIRAHPracBot(int selectorOne) {
+        switch (selectorOne) {
+            case 0:
+                return null;
+
+            case 1: {
+                double turnAroundSpeed = Config.kMaxSpeedMetersPerSecond;
+
+                Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                    new PoseScaled(0.3, 0.0, 0),
+                    new PoseScaled(1.4, 1.45, 100)),
+                    VisionPose.getInstance().getTrajConfig(0, 0, false));
+                RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAHPrac-Bounce-P1");
+
+                Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
+                    endPose(trajectory1),
+                    new PoseScaled(2.7, -0.549, 100),
+                    new PoseScaled(3.026, -1.396, 179.648),
+                    new PoseScaled(3.65, -0.188, -89.385),
+                    new PoseScaled(3.819, 1.417, -90.176)),
+                    VisionPose.getInstance().getTrajConfig(0, turnAroundSpeed, true));
+                RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "IRAHPrac-Bounce-P2");
+
+                Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(List.of(
+                    endPose(trajectory2), 
+                    new PoseScaled(3.9, -0.190, -90.791),
+                    new PoseScaled(5.014, -1.555, -3.560),
+                    new PoseScaled(5.971, 0.125, 90.835),
+                    new PoseScaled(5.991, 1.223, 88.989)),
+                    VisionPose.getInstance().getTrajConfig(0, 0, false));
+                RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAHPrac-Bounce-P3");
+
+                Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(List.of(
+                    endPose(trajectory3),
+                    new PoseScaled(6.371, 0.772, 117.334),
+                    new PoseScaled(7.050, 0.2, 143.877)),
+                    VisionPose.getInstance().getTrajConfig(0, 0, true));
+                RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory4, "IRAHPrac-Bounce-P3");
+
+
+//List.of(new TranslationScaled(6.2, 0.5)),
+// new PoseScaled(7.15, -0.1, 160),
+                return new SequentialCommandGroup(new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                                                ramsete1,
+                                                ramsete2,
+                                                ramsete3,
+                                                ramsete4); 
+                }
+            default:
+                return null;
+
+
+//  new PoseScaled(2.230, -0.549, 117.422) 
+//  new PoseScaled(3.026, -1.396, 179.648) 
+//  new PoseScaled(3.826, -0.188, -89.385) 
+//  new PoseScaled(3.819, 1.417, -90.176) 
+
+//  new PoseScaled(3.792, -0.190, -90.791) 
+//  new PoseScaled(5.014, -1.555, -3.560) 
+//  new PoseScaled(5.971, 0.125, 90.835) 
+//  new PoseScaled(5.991, 1.223, 88.989) 
+
+//  new PoseScaled(7.078, -0.042, 176.396) 
+//  new PoseScaled(7.078, -0.042, 175.869)       
+        }
     }
 
     /**
