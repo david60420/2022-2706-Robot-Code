@@ -41,6 +41,8 @@ import frc.robot.commands.ramseteAuto.TranslationScaled;
 import frc.robot.commands.ramseteAuto.VisionPose;
 import frc.robot.commands.ramseteAuto.VisionPose.VisionType;
 
+import frc.robot.nettables.VisionCtrlNetTable;
+
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -203,7 +205,14 @@ public class RobotContainer {
                 return getAutoCommandIRAHDeepSpaceRobot(selectorOne);
 
             case 4:
-            return getAutoCommandIRAHPracBot(selectorOne);
+                return getAutoCommandIRAHPracBot(selectorOne);
+
+            case 5:
+                return getAutoCommandIRAHMiniBot(selectorOne);
+
+            case 6:
+                System.out.println("getAutoCommandIRAHCompetitionBot");
+                 return getAutoCommandIRAHCompetitionBot(selectorOne);
         }
 
         return null;
@@ -729,6 +738,402 @@ public class RobotContainer {
 //  new PoseScaled(7.078, -0.042, 175.869)       
         }
     }
+
+    private Command getAutoCommandIRAHMiniBot(int selectorOne){
+        switch (selectorOne) {
+            case 0:
+                return null;
+            case 2:
+            {
+                // Barrel Racing path tested in basement
+                // robot: backward driving
+              
+                Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(new PoseScaled (0.0,0.0,180+0.0), 
+                  List.of(
+                    new TranslationScaled(1.026, 0.20),
+                    new TranslationScaled(1.763, -0.4),
+                    new TranslationScaled(1.45,-0.808),
+                    new TranslationScaled(1.1,-0.302)), //<--- need to be adjusted. 
+                    new PoseScaled(1.179,0.1,180+0),
+                    VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, true));
+                    RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAH-Barrel-P1");
+                    //Config.kRamseteTransferSpeed,
+                    //VisionType.DiamondTape
+                    
+                    Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of( 
+                        endPose(trajectory1),
+                        new PoseScaled(2.2, -0.134, 180+10), 
+                        new PoseScaled(3.29,0.226, 180+48)), 
+                        VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, true));
+                    RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "IRAH-Barrel-P2");
+                    //Config.kRamseteTransferSpeed
+                    //VisionType.DiamondTape
+    
+    
+                    Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory( 
+                      List.of(
+                        endPose(trajectory2),
+                        new PoseScaled(3.257,0.99,180+148),
+                        new PoseScaled(2.297,1.019,180-141),
+                        new PoseScaled(2.165,0.101,180-54.79),
+                        new PoseScaled(3.182,-0.818,180+0)),
+                        VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, true));
+                    RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAH-Barrel-P3");
+                    //VisionType.DiamondTape
+    
+                    Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(
+                        List.of( 
+                        endPose(trajectory3),
+                        new PoseScaled( 4.21,-0.529,180+94), 
+                        new PoseScaled( 3.89,0.05,180+147), 
+                        new PoseScaled(3.128,-0.15,180-163),
+                        new PoseScaled(2.039,0.10,180+180),
+                        new PoseScaled(0.0,0.0,180+180)),
+                        VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, 0, true));
+                    RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory4, "IRAH-Barrel-P4");
+    
+                    // Trajectory trajectory5 = TrajectoryGenerator.generateTrajectory(new PoseScaled(), 
+                    //   List.of(
+                    //     new TranslationScaled(),
+                    //     new TranslationScaled(),
+                    //     new TranslationScaled()),
+                    //     new PoseScaled(),
+                    //     VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, VisionType.MiddleOfCones));
+                    // RamseteCommandMerge ramsete5 = new RamseteCommandMerge(trajectory5, "IRAH-Barrel-P5");
+                
+                    return new SequentialCommandGroup(new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                                                      ramsete1,
+                                                      ramsete2,
+                                                      ramsete3,
+                                                      ramsete4);
+            }
+            case 3:
+            {
+                //slalom path
+                //Not completed on trajectory 4
+                Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(
+                    List.of(
+                       new PoseScaled (0.0,0.0,0.0), 
+                       new PoseScaled(0.773, 0.241, 83),
+                       new PoseScaled(1.162,1.101,30.93)),
+                        // new PoseScaled(2.0,1.14,0),
+                        //    new PoseScaled(1.96,1.46,1.8)),
+                       VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, false));
+                RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAH-Slalom-P1");
+    
+                Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(
+                        List.of( 
+                        endPose(trajectory1),
+                        new PoseScaled(2.4,1.13,-63),
+                        new PoseScaled(3.54,-0.0577,-5),
+                        new PoseScaled(4.23,1.26,95),
+                        new PoseScaled(3.8,1.36,179)), 
+                        VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, false));
+                RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "IRAH-Slalom-P2");
+    
+                Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(List.of( 
+                        endPose(trajectory2),
+                        new PoseScaled(3.34,1.06,-103),
+                        new PoseScaled(3.0,-0.03,-130.5)),
+                    //    new PoseScaled(2.4,0.03,-146)), 
+                        VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, false));
+                RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAH-Slalom-P3");
+    
+                Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(List.of( 
+                        endPose(trajectory3),
+                        
+                        new PoseScaled(1.23,-0.16,145),
+                        new PoseScaled(0.87,0.78,-172),
+                        new PoseScaled(0,0,-180)), 
+                        VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, 0, false));
+                RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory4, "IRAH-Slalom-P4");
+                   
+                return new SequentialCommandGroup(new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                                                      ramsete1,                             
+                                                      ramsete2,
+                                                      ramsete3, 
+                                                      ramsete4);    
+    
+            }
+            case 4:
+            {
+                    //Added Alex's slalom path.
+                    //Based on pathweaver, not tested
+                Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(new PoseScaled(1.284, -3.93, 0.0), 
+                    List.of(
+                      new TranslationScaled(2.147, -3.576) ),
+                      new PoseScaled(3.389,-2.03, 21),
+                      VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, false));
+                RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAH-Slolam-P1");
+    
+                Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(new PoseScaled(), 
+                    List.of(
+                      new TranslationScaled(4.693, -1.776),
+                      new TranslationScaled(5.88, -1.972),
+                      new TranslationScaled(6.514, -2.718),
+                      new TranslationScaled(7.451, -3.73),
+                      new TranslationScaled(8.518, -3.643),
+                      new TranslationScaled(8.28 , -2.234),
+                      new TranslationScaled(6.976, -2.559)),
+                      new PoseScaled(6.105, -3.847, 204.2),
+                      VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, 0, false));
+                RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "IRAH-Slolam-P3");
+    
+                Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(new PoseScaled(), 
+                    List.of(
+                    new TranslationScaled(4.68, -4.009),
+                    new TranslationScaled(3.147, -3.847),
+                    new TranslationScaled(2.564, -3.368)),
+                    new PoseScaled(1.609, -2.289, 151),
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, VisionType.MiddleOfCones));
+                RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAH-Slolam-P3");
+    
+                Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(new PoseScaled(), 
+                    List.of(),
+                      new PoseScaled(0.593, -2.143, 0),
+                      VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, 0, true));
+                RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory4, "IRAH-Slolam-P4");
+    
+                return new SequentialCommandGroup(new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                                                      ramsete1,
+                                                      ramsete2                             
+                                                     );   
+            } 
+
+            case 5: 
+            {
+                 //manually tuned on mini-robot in basement
+                 //Bounce path
+                Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                    //new PoseScaled(0.372, 0.058, 37.57),
+                    new PoseScaled(0, 0, 0),
+                    new PoseScaled(0.622, 0.36, 75.32)),
+                    VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTurnAroundSpeed, false));
+                RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAH-Bounce-P1");
+
+                Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
+                    endPose(trajectory1),
+                    new PoseScaled(1.34, -0.609, 83.35)), // MATCH-VisionPose First MiddleOfCones 
+                    //new PoseScaled(3.9, -3.95, 180)),
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, true));
+                RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "IRAH-Bounce-P2");
+
+                Trajectory trajectory3 = TrajectoryGenerator.generateTrajectory(List.of(
+                    endPose(trajectory2),
+                    new PoseScaled(1.73, 0.5, 56.82)), // MATCH-Trajectory4
+                    //new PoseScaled(4.58, -1.11, -90)),  // MATCH-VisionPose
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, false));
+                RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAH-Bounce-P3");
+
+                //VisionType.MiddleOfCones
+
+                Trajectory trajectory4 = TrajectoryGenerator.generateTrajectory(List.of(
+                    endPose(trajectory3), 
+                    new PoseScaled(2.103, -0.454, 93.65)), // MATCH-Trajectory3
+                    //new PoseScaled(5.75, -3.8, 0), 
+                    //new PoseScaled(6.86, -3.1 , 90),
+                    //new PoseScaled(6.872, -1, 90)), // MATCH-VisionPose First Diamond for third starred marker
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, true));
+                RamseteCommandMerge ramsete4 = new RamseteCommandMerge(trajectory4, "IRAH-Bounce-P4");
+
+                //VisionType.DiamondTape
+
+                Trajectory trajectory5 = TrajectoryGenerator.generateTrajectory(List.of(
+                    endPose(trajectory4), 
+                    new PoseScaled(2.73, 0.5, 69.61)),
+                    //new TranslationScaled(7.58, -2.28)), // MATCH-VisionPose End zone Middle of Cones (B10 to D10)
+                    //new PoseScaled(8.37, -2.34, 180),
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, Config.kRamseteTransferSpeed, false));
+                RamseteCommandMerge ramsete5 = new RamseteCommandMerge(trajectory5, "IRAH-Bounce-P5");
+
+                //VisionType.MiddleOfCones
+
+                Trajectory trajectory6 = TrajectoryGenerator.generateTrajectory(List.of(
+                    endPose(trajectory5), 
+                    new PoseScaled(2.3, -0.1, -10)),
+                    //new TranslationScaled(7.58, -2.28)), // MATCH-VisionPose End zone Middle of Cones (B10 to D10)
+                    //new PoseScaled(8.37, -2.34, 180),
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteBounceEndSpeed, Config.kRamseteBounceEndSpeed, true));
+                RamseteCommandMerge ramsete6 = new RamseteCommandMerge(trajectory6, "IRAH-Bounce-P6");
+
+                Trajectory trajectory7 = TrajectoryGenerator.generateTrajectory(List.of(
+                    endPose(trajectory6), 
+                    new PoseScaled(3.46, -0.1, -10)),
+                    //new TranslationScaled(7.58, -2.28)), // MATCH-VisionPose End zone Middle of Cones (B10 to D10)
+                    //new PoseScaled(8.37, -2.34, 180),
+                    VisionPose.getInstance().getTrajConfig(Config.kRamseteBounceEndSpeed, 0, false));
+                RamseteCommandMerge ramsete7 = new RamseteCommandMerge(trajectory7, "IRAH-Bounce-P7");
+
+                //VisionType.MiddleOfCones
+               
+                double waypointRadiusMeters = 0.5;
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                    ramsete1,
+                    new ParallelRaceGroup(ramsete2),// new PassThroughWaypoint(ramsete2, VisionType.MiddleOfCones, 6, ramsete2.getTargetPose(), Config.kRamseteTransferSpeed, waypointRadiusMeters)),
+                    new ParallelRaceGroup(ramsete3),// new PassThroughWaypoint(ramsete3, VisionType.MiddleOfCones, 6, ramsete3.getTargetPose(), Config.kRamseteTurnAroundSpeed, waypointRadiusMeters)),
+                    new ParallelRaceGroup(ramsete4),// new DriveToWaypoint(ramsete4, VisionType.DiamondTape, 10, Config.kRamseteTurnAroundSpeed)),
+                    new ParallelRaceGroup(ramsete5),// new PassThroughWaypoint(ramsete5, VisionType.MiddleOfCones, 6, ramsete4.getTargetPose(), 0, waypointRadiusMeters))
+                    new ParallelRaceGroup(ramsete6),
+                    new ParallelRaceGroup(ramsete7)
+                    );
+            }
+            
+        }
+        return null;
+                
+    }
+
+    
+    private Command getAutoCommandIRAHCompetitionBot(int selectorOne){
+        switch (selectorOne) {
+            case 0:
+                return null;
+
+            case 1:
+                {
+                    //Galactic: path A
+                    //first determine if the red or blue path
+                    double dYaw = VisionCtrlNetTable.yawToPowerCell.get();
+                    double distance = VisionCtrlNetTable.distanceToPowerCell.get();
+    
+                    boolean bRed = false;
+                    if ( dYaw > -5.0 || dYaw < 5.0 )
+                    {
+                       bRed = true;
+                    }
+
+                    System.out.println("Path A, bRed: "+bRed);
+   
+                    //notes:
+                    // different speed for picking up the ball
+                    // parallel command with picking power cell
+                    if ( bRed )
+                    {
+                        //red path
+    
+                        Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                            new PoseScaled(0, 0, 0),
+                            new PoseScaled(0.622, 0.36, 75.32), //C3
+                            new PoseScaled(0.622, 0.36, 75.32), //D5
+                            new PoseScaled(0.622, 0.36, 75.32)), //A6
+                            VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, false));
+                        RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path A red");
+    
+                        Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
+                            endPose(trajectory1), //A6
+                            new PoseScaled(0,0,0)),
+                            VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, 0, false));
+                        RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path A red");
+                        
+                        intakeCommand = new OperatorIntakeCommand();
+                        // return new SequentialCommandGroup(
+                        //     new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                        //     new ParallelCommandGroup(ramsete1, intakeCommand),
+                        //     ramsete2);
+                        return null;
+                        
+                    }
+                    else
+                    {
+                        //blue path
+                        Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                            new PoseScaled(0, 0, 0),
+                            new PoseScaled(0.622, 0.36, 75.32), //E6
+                            new PoseScaled(0.622, 0.36, 75.32), //B7
+                            new PoseScaled(0.622, 0.36, 75.32)), //C9
+                            VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, false));
+                        RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path A blue");
+    
+                        Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
+                            endPose(trajectory1), //C9
+                            new PoseScaled(0,0,0)),
+                            VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, 0, false));
+                        RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path A blue");
+                        
+                        intakeCommand = new OperatorIntakeCommand();
+                        // return new SequentialCommandGroup(
+                        //     new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                        //     new ParallelCommandGroup(ramsete1, intakeCommand),
+                        //     ramsete2);
+                        return null;
+                    }
+                }
+                case 2:
+                {
+                    //Galactic: path B
+                    //first determine if the red or blue path
+                    double dYaw = VisionCtrlNetTable.yawToPowerCell.get();
+                    double distance = VisionCtrlNetTable.distanceToPowerCell.get();
+    
+                    boolean bRed = false;
+                    if ( distance > 4.5 || distance < 5.5 )
+                    {
+                       bRed = true;
+                    }
+
+                    System.out.println("Path B, bRed: "+bRed);
+   
+                    //notes:
+                    // different speed for picking up the ball
+                    // parallel command with picking power cell
+                    if ( bRed )
+                    {
+                        //red path
+    
+                        Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                            new PoseScaled(0, 0, 0),
+                            new PoseScaled(0.622, 0.36, 75.32), //B3
+                            new PoseScaled(0.622, 0.36, 75.32), //D5
+                            new PoseScaled(0.622, 0.36, 75.32)), //B7
+                            VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, false));
+                        RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path B red");
+    
+                        Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
+                            endPose(trajectory1), //B7
+                            new PoseScaled(0,0,0)),
+                            VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, 0, false));
+                        RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path B red");
+                        
+                        intakeCommand = new OperatorIntakeCommand();
+                        return new SequentialCommandGroup(
+                            new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                            new ParallelCommandGroup(ramsete1, intakeCommand),
+                            ramsete2);
+                            
+                    }
+                    else
+                    {
+                        //blue path
+                        Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                            new PoseScaled(0, 0, 0),
+                            new PoseScaled(0.622, 0.36, 75.32), //D6
+                            new PoseScaled(0.622, 0.36, 75.32), //B8
+                            new PoseScaled(0.622, 0.36, 75.32)), //D10
+                            VisionPose.getInstance().getTrajConfig(0, Config.kRamseteTransferSpeed, false));
+                        RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path B blue");
+    
+                        Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
+                            endPose(trajectory1), //D10
+                            new PoseScaled(0,0,0)),
+                            VisionPose.getInstance().getTrajConfig(Config.kRamseteTransferSpeed, 0, false));
+                        RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path B blue");
+                        
+                        intakeCommand = new OperatorIntakeCommand();
+                        return new SequentialCommandGroup(
+                            new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                            new ParallelCommandGroup(ramsete1, intakeCommand),
+                            ramsete2);
+                    }
+   
+   
+                }
+                default:
+                    return null;
+        }
+    }
+    
 
     /**
      * Helper method for constructing trajectories. Gets the final pose of a given trajectory.

@@ -227,9 +227,10 @@ public class Config {
     // Ramsete Max Velocity and max acceleration
     public static double kMaxSpeedMetersPerSecond = 1.85; // DS Video -> 3.0
     public static double kMaxAccelerationMetersPerSecondSquared = 1.7; // DS Video -> 2.0 
-    
+
     public static double kRamseteTransferSpeed = kMaxSpeedMetersPerSecond;
     public static double kRamseteTurnAroundSpeed = kMaxSpeedMetersPerSecond; 
+    public static double kRamseteBounceEndSpeed = kMaxSpeedMetersPerSecond-0.3;
 
     // Converted feet to meters
     public static double METERS_IN_ONE_FOOT = 0.3048;
