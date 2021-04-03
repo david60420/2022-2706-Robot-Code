@@ -29,12 +29,12 @@ public class LowerArm extends CommandBase {
     @Override
     public void initialize() {
         int currentPosistion = armSub.getPosistion();
-        int errorAllowed = 50;
-        // if (currentPosistion > ticksAtStartingPosisiton+errorAllowed || currentPosistion < ticksAtStartingPosisiton-errorAllowed) {
-        //     Robot.haltRobot("ARM NOT IN STARTING POSITION");
-        //     this.cancel();
-        //     return;
-        // }
+        int errorAllowed = 200;
+        if (currentPosistion > ticksAtStartingPosisiton+errorAllowed || currentPosistion < ticksAtStartingPosisiton-errorAllowed) {
+            Robot.haltRobot("ARM NOT IN STARTING POSITION");
+            this.cancel();
+            return;
+        }
         armSub.resetPosition(ticksAtStartingPosisiton);
         armSub.moveArm(0.5);
         state = 1;
