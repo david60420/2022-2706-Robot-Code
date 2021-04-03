@@ -21,12 +21,13 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
     private static final int REVERSE_LIMIT_TICKS = Config.robotSpecific(3500, 0); // 1300  
 
     // Percent output needed to hold the arm at horizontal
-    private static final double PERCENT_AT_HORIZONTAL = Config.robotSpecific(0.0, 0.02);
+    private static final double PERCENT_AT_HORIZONTAL = Config.ARM_PERCENT_AT_HORIZONTAL;
+
     // private static final int EXTRA_POWER_RANGE_TICK = REVERSE_LIMIT_TICKS + 300;
     // private static final double EXTRa_POWER_PERCENT = 0.2;
 
     // Tick count of the arm at horizontal. In this case the lower limit is horizontal
-    private static final int ARM_HORIZONTAL_TICKS = REVERSE_LIMIT_TICKS;
+    private static final int ARM_HORIZONTAL_TICKS = REVERSE_LIMIT_TICKS;//+50;
 
     private static final int acceptableError = 50;
 
@@ -75,11 +76,11 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         armTalon.configAllowableClosedloopError(0, Config.ARM_ALLOWABLE_CLOSED_LOOP_ERROR_TICKS, Config.CAN_TIMEOUT_SHORT);
 
         //  Config the PID Values based on constants
-        armTalon.config_kP(0, Config.ARM_PID_P, Config.CAN_TIMEOUT_SHORT);
-        armTalon.config_kI(0, Config.ARM_PID_I, Config.CAN_TIMEOUT_SHORT);
-        armTalon.config_kD(0, Config.ARM_PID_D, Config.CAN_TIMEOUT_SHORT);
-        armTalon.config_kF(0, Config.ARM_PID_F, Config.CAN_TIMEOUT_SHORT);
-        armTalon.config_IntegralZone(0, Config.ARM_PID_IZONE, Config.CAN_TIMEOUT_SHORT);
+        armTalon.config_kP(0, Config.ARM_PID_P, Config.CAN_TIMEOUT_LONG);
+        armTalon.config_kI(0, Config.ARM_PID_I, Config.CAN_TIMEOUT_LONG);
+        armTalon.config_kD(0, Config.ARM_PID_D, Config.CAN_TIMEOUT_LONG);
+        armTalon.config_kF(0, Config.ARM_PID_F, Config.CAN_TIMEOUT_LONG);
+        armTalon.config_IntegralZone(0, Config.ARM_PID_IZONE, Config.CAN_TIMEOUT_LONG);
 
         armTalon.configMotionCruiseVelocity(Config.ARM_PID_CRUISE_VELOCITY, Config.CAN_TIMEOUT_SHORT);
         armTalon.configMotionAcceleration(Config.ARM_PID_ACCELERATION, Config.CAN_TIMEOUT_SHORT);
@@ -88,7 +89,7 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
 
 
         // Set up the close loop period
-        armTalon.configClosedLoopPeriod(0, Config.CAN_TIMEOUT_LONG);
+        // armTalon.configClosedLoopPeriod(0, Config.CAN_TIMEOUT_LONG);
         armTalon.setSensorPhase(Config.ARM_PHASE);
         // armTalon.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 20, Config.CAN_TIMEOUT_LONG);
         // armTalon.setStatusFramePeriod(StatusFrame.Status_13_Base_PIDF0, 20, Config.CAN_TIMEOUT_LONG);
@@ -97,16 +98,16 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         armTalon.configForwardSoftLimitEnable(true);
         armTalon.configForwardSoftLimitThreshold(FORWARD_LIMIT_TICKS, Config.CAN_TIMEOUT_LONG);
 
-        armTalon.configReverseSoftLimitEnable(true);
-        armTalon.configReverseSoftLimitThreshold(REVERSE_LIMIT_TICKS, Config.CAN_TIMEOUT_SHORT);
+        // armTalon.configReverseSoftLimitEnable(true);
+        // armTalon.configReverseSoftLimitThreshold(REVERSE_LIMIT_TICKS, Config.CAN_TIMEOUT_SHORT);
         
         // Limit switch 
         armTalon.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen, Config.CAN_TIMEOUT_SHORT);
         armTalon.configClearPositionOnLimitR(true, Config.CAN_TIMEOUT_SHORT);
 
         // Max voltage to apply with the talon. 12 is the maximum
-        armTalon.configVoltageCompSaturation(12, Config.CAN_TIMEOUT_LONG);
-        armTalon.enableVoltageCompensation(true);
+        // armTalon.configVoltageCompSaturation(12, Config.CAN_TIMEOUT_LONG);
+        // armTalon.enableVoltageCompensation(true);
 
         // Number of seconds from 0 to full throttle
      //   armTalon.configOpenloopRamp(0.6, Config.CAN_TIMEOUT_LONG);
@@ -181,12 +182,13 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         
         // Set the desired position every cycle and update the gravity compensation at the current angle.
         double currentAngleFromHorizontal = toDeg(currentTicks - ARM_HORIZONTAL_TICKS);
-        double gravityCompensation = PERCENT_AT_HORIZONTAL * Math.cos(Math.toRadians(currentAngleFromHorizontal));
+        double gravityCompensation = PERCENT_AT_HORIZONTAL * Math.cos(Math.toRadians(currentAngleFromHorizontal) * Config.ARM_COS_VERT_STRETCH);
         armTalon.set(ControlMode.MotionMagic, currentPosition, DemandType.ArbitraryFeedForward, gravityCompensation);
 
         SmartDashboard.putNumber("Arm Gravity Compensation", gravityCompensation);
+        SmartDashboard.putNumber("Arm Error", armTalon.getClosedLoopError()); 
         SmartDashboard.putBoolean("Arm Limit Switch", armTalon.getSensorCollection().isRevLimitSwitchClosed());
-
+    
         // If near lower limit, stop the motor.
         if (Config.ARM_TALON != 1) {
             // if(currentTicks <= REVERSE_LIMIT_TICKS + 25) {
