@@ -167,7 +167,7 @@ public class Config {
     
     public static boolean INVERT_ARM_TALON = robotSpecific(true, true, false);
     
-    public static int ARM_ALLOWABLE_CLOSED_LOOP_ERROR_TICKS = 4096;
+    public static int ARM_ALLOWABLE_CLOSED_LOOP_ERROR_TICKS = 30;
     
     // Timeouts for sending CAN bus commands
     public static final int CAN_TIMEOUT_SHORT = 10;
@@ -183,7 +183,7 @@ public class Config {
     public static final boolean TELEOP_SQUARE_JOYSTICK_INPUTS = true;
     
     // PIDF values for the arm
-    public static double ARM_PID_P = robotSpecific(5);
+    public static double ARM_PID_P = robotSpecific(1); // 5
     public static double ARM_PID_I = robotSpecific(0.0);
     public static double ARM_PID_D = robotSpecific(0.0);
     public static double ARM_PID_F = robotSpecific(0.05);
