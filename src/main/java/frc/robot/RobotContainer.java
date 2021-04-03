@@ -149,7 +149,7 @@ public class RobotContainer {
             new JoystickButton(driverStick, XboxController.Button.kY.value).whenHeld(moveArm);
 
             Command lowerArm = new LowerArm();
-            new JoystickButton(driverStick, XboxController.Button.kB.value).whenActive(lowerArm);
+            // new JoystickButton(driverStick, XboxController.Button.kB.value).whenActive(lowerArm);
         }
 
         sensitiveDriving = new SensitiveDriverControl(driverStick);
