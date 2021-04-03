@@ -140,11 +140,14 @@ public class RobotContainer {
         new JoystickButton(driverStick, XboxController.Button.kA.value).whenHeld(moveToOuterPort, true);
 
         if (Config.ARM_TALON != -1) {
-            reverseArmManually = new MoveArmManuallyCommand(-0.35);
+            reverseArmManually = new InstantCommand(() -> ArmSubsystem.getInstance().setPosition(0));  //new MoveArmManuallyCommand(-0.35);
             new JoystickButton(driverStick, XboxController.Button.kX.value).whenHeld(reverseArmManually);
 
-            moveArm = new MoveArmManuallyCommand(10);
+            moveArm = new InstantCommand(() -> ArmSubsystem.getInstance().setPosition(300)); // new MoveArmManuallyCommand(10);
             new JoystickButton(driverStick, XboxController.Button.kY.value).whenHeld(moveArm);
+
+            Command upperArmPos = new InstantCommand(() -> ArmSubsystem.getInstance().setPosition(600));
+            new JoystickButton(driverStick, XboxController.Button.kB.value).whenHeld(upperArmPos);
         }
 
         sensitiveDriving = new SensitiveDriverControl(driverStick);
@@ -365,7 +368,7 @@ public class RobotContainer {
             case 0:
                 return null;
 
-            case 1:{
+            case 1: {
                 /** Bounce path  */
                 Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
                     new PoseScaled(0.9, -2.4, 0),

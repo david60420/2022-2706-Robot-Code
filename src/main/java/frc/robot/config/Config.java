@@ -183,11 +183,15 @@ public class Config {
     public static final boolean TELEOP_SQUARE_JOYSTICK_INPUTS = true;
     
     // PIDF values for the arm
-    public static double ARM_PID_P = robotSpecific(5);
+    public static double ARM_PID_P = 0;//robotSpecific(2); // 5   0.5115
     public static double ARM_PID_I = robotSpecific(0.0);
     public static double ARM_PID_D = robotSpecific(0.0);
-    public static double ARM_PID_F = robotSpecific(0.05);
+    public static double ARM_PID_F = 0;// robotSpecific(7); // 0.05  2.0
+    public static double ARM_PID_IZONE = robotSpecific(0.0);
 
+    public static int ARM_PID_CRUISE_VELOCITY = robotSpecific(150);
+    public static int ARM_PID_ACCELERATION = robotSpecific(60);
+    public static int ARM_PID_SCURVE = robotSpecific(2);
 
     // Define a global constants table for subsystems to use
     public static NetworkTable constantsTable = NetworkTableInstance.getDefault().getTable("constants");
