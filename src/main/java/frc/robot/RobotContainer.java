@@ -182,8 +182,10 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         // Testing forced numbers
         int selectFolder = 6;
-        int selectPath = 2;
 
+        //Note: if there is not selector,
+        //      selectorOne will be forced to selectPath
+        int selectPath = 2;
         int selectorOne = 2;
 
         if (analogSelectorOne != null){
@@ -1007,8 +1009,7 @@ public class RobotContainer {
                        bRed = true;
                     }
 
-
-                    System.out.println("Path A, bRed: "+bRed);
+                    System.out.println("Path A, bRed: " + bRed);
    
                     //notes:
                     // different speed for picking up the ball
@@ -1019,9 +1020,9 @@ public class RobotContainer {
     
                         Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
                             new PoseScaled(0, 0, 0),
-                            new PoseScaled(1.062, 0.001, 0.220), //C3 new PoseScaled(1.162, 0.001, 0.220) 
-                            new PoseScaled(3.251, -0.631, -28.521), //D5
-                            new PoseScaled(4.127, 1.060, 83.013)), //A6
+                            new PoseScaled(1.062, 0.001, 0.220),    //C3 
+                            new PoseScaled(3.251, -0.731, -28.521), //D5  (y=-0.631)
+                            new PoseScaled(4.127, 1.060, 83.013)),  //A6
                             VisionPose.getInstance().getTrajConfig(0, Config.kRamseteGalacticSpeed, false));
                         RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path A red");
     
@@ -1032,7 +1033,6 @@ public class RobotContainer {
                             VisionPose.getInstance().getTrajConfig(Config.kRamseteGalacticSpeed, 0, false));
                         RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path A red");
                         
-                        //Q: how long the intake command will take
                         intakeCommand = new AutoIntakeCommand();
                         Command rameseteCommands = new SequentialCommandGroup(ramsete1, ramsete2);
                         return new SequentialCommandGroup(
@@ -1059,13 +1059,6 @@ public class RobotContainer {
                             VisionPose.getInstance().getTrajConfig(Config.kRamseteGalacticSpeed, 0, false));
                         RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path A blue");
                         
-                        /*
-                        intakeCommand = new OperatorIntakeCommand();
-                         return new SequentialCommandGroup(
-                             new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
-                             new ParallelCommandGroup(ramsete1), //intakeCommand),
-                             ramsete2);
-                        */
                         intakeCommand = new AutoIntakeCommand();
                         Command rameseteCommands = new SequentialCommandGroup(ramsete1, ramsete2);
                         return new SequentialCommandGroup(
@@ -1080,14 +1073,13 @@ public class RobotContainer {
                     //Galactic: path B
                     //first determine if the red or blue path
                     double dYaw = VisionCtrlNetTable.yawToDiamond.get();
-                    //double distance = VisionCtrlNetTable.distanceToPowerCell.get();
     
                     boolean bRed = false;
                     if ( dYaw > 0 )
                     {
                        bRed = true;
                     }
-                   // bRed = true;
+
                     System.out.println("Path B, bRed: "+bRed);
    
                     //notes:
@@ -1099,27 +1091,20 @@ public class RobotContainer {
     
                         Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
                             new PoseScaled(0, 0, 0),
-                            new PoseScaled(1.614, 0.060, 1.978), //B3 new PoseScaled(1.502, -0.053, -8.525) new PoseScaled(1.632, 0.083, 1.230) 
-                            new PoseScaled(3.123, -1.2, -42.539), //D5  new PoseScaled(3.113, -1.329, -44.077)
-                            new PoseScaled(4.142, -2.309, 6.680),
-                            new PoseScaled(5.3, -0.288, 53.394)),//new PoseScaled(3.308, -0.246, 63.984)), //B7 new PoseScaled(4.294, -0.735, 53.833)
+                            new PoseScaled(1.614, 0.060, 1.978),   //B3
+                            new PoseScaled(3.123, -1.2, -42.539),  //D5
+                            new PoseScaled(4.142, -2.309, 6.680),  
+                            new PoseScaled(5.3, -0.288, 53.394)),  //B7
                             VisionPose.getInstance().getTrajConfig(0, Config.kRamseteGalacticSpeed, false));
                         RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path B red");
     
                         Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
                             endPose(trajectory1), //B7 
                             new PoseScaled(6.034, 1.083, 27.334),
-                            new PoseScaled(8.484, 0.568, 3.911)), //new PoseScaled(8.792, -0.228, 11.558)
+                            new PoseScaled(8.484, 0.568, 3.911)), 
                             VisionPose.getInstance().getTrajConfig(Config.kRamseteGalacticSpeed, 0, false));
                         RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path B red");
                         
-                        /*
-                        intakeCommand = new OperatorIntakeCommand();
-                        return new SequentialCommandGroup(
-                            new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
-                            new ParallelCommandGroup(ramsete1), //intakeCommand),
-                            ramsete2);
-                        */
                         intakeCommand = new AutoIntakeCommand();
                         Command rameseteCommands = new SequentialCommandGroup(ramsete1, ramsete2);
                         return new SequentialCommandGroup(
@@ -1160,12 +1145,13 @@ public class RobotContainer {
                             new PoseScaled(9.073, -2.231, -7.031)), //new PoseScaled(8.815, -0.222, 11.338)
                         */
 
-                        intakeCommand = new OperatorIntakeCommand();
-                  
+                        intakeCommand = new AutoIntakeCommand();
+                        Command rameseteCommands = new SequentialCommandGroup(ramsete1, ramsete2);
                         return new SequentialCommandGroup(
                             new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
-                            new ParallelCommandGroup(ramsete1), //intakeCommand),
-                            ramsete2);
+                            new LowerArm(),
+                            new ParallelRaceGroup(intakeCommand, rameseteCommands));
+                            
                     }
    
    
