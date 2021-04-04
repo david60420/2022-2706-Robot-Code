@@ -28,15 +28,15 @@ public class LowerArm extends CommandBase {
     // Called when the command is initially scheduled.
     @Override
     public void initialize() {
-        int currentPosistion = armSub.getPosistion();
-        int errorAllowed = 200;
-        if (currentPosistion > ticksAtStartingPosisiton+errorAllowed || currentPosistion < ticksAtStartingPosisiton-errorAllowed) {
-            Robot.haltRobot("ARM NOT IN STARTING POSITION");
-            this.cancel();
-            return;
-        }
+        // int currentPosistion = armSub.getPosistion();
+        // int errorAllowed = 200;
+        // if (currentPosistion > ticksAtStartingPosisiton+errorAllowed || currentPosistion < ticksAtStartingPosisiton-errorAllowed) {
+        //     Robot.haltRobot("ARM NOT IN STARTING POSITION");
+        //     this.cancel();
+        //     return;
+        // }
         armSub.resetPosition(ticksAtStartingPosisiton);
-        armSub.moveArm(0.5);
+        armSub.moveArm(0.7);
         state = 1;
     }
 
@@ -45,27 +45,32 @@ public class LowerArm extends CommandBase {
     public void execute() {
         if (state == 1) {
                 if (armSub.reachedPosition(ticksAboveStartingPosition)) {
-                    armSub.setPosition(0, 0.4); // 0.25
-                    loopCount = 100;
+                    armSub.stopMotor();
                     state = 2;
+                    // armSub.setPosition(0, 0.4); // 0.25
+                    loopCount = 100;
                 }
+                else{
+                    armSub.moveArm(0.7);
+                }
+            
             
         } else if (state == 2) {
             if (loopCount <= 0) {
-                armSub.setPosition(0, 0.16);
-                loopCount = 100;
+                armSub.moveArm(-0.2);
+                // loopCount = 100;
                 state = 3;
             } else {
                 loopCount--;
             }
             
-        } else if (state == 3) {
-            if (loopCount <= 0) {
-                armSub.stopMotor();
-                state = 4;
-            } else {
-                loopCount--;
-            }
+        // } else if (state == 3) {
+        //     if (loopCount <= 0) {
+        //         armSub.stopMotor();
+        //         state = 4;
+        //     } else {
+        //         loopCount--;
+        //     }
             
         }
         
@@ -82,6 +87,6 @@ public class LowerArm extends CommandBase {
     // Returns true when the command should end.
     @Override
     public boolean isFinished() {
-        return state >= 4;
+        return state >= 3;
     }
 }

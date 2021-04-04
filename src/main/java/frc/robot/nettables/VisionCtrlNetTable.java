@@ -47,7 +47,7 @@ public class VisionCtrlNetTable {
         distanceToPowerCell = () -> visionPowercellTable.getEntry(Config.DISTANCE_POWERCELL).getDouble(-1);
         yawToPowerCell = () -> visionPowercellTable.getEntry(Config.YAW_POWERCELL).getDouble(-99);
 
-        //visionPowercellTable = inst.getTable(Config.VISION_TABLE_NAME_POWERCELL);
+        visionPowercellTable = inst.getTable(Config.VISION_TABLE_NAME_OUTERPORT);
         yawToDiamond = () -> visionPowercellTable.getEntry(Config.YAW_TO_DIAMOND).getDouble(-99);
         
         
