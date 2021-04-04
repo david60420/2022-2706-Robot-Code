@@ -199,6 +199,7 @@ public class Config {
     public static String DISTANCE_OUTER_PORT    = "DistanceToOuterPort";
     public static String YAW_POWERCELL          = "YawToPowerCell";
     public static String YAW_OUTER_PORT         = "YawToTarget";
+    public static String YAW_TO_DIAMOND      = "YawToDiamond";
 
     // Drivetrain PID values
     public static double DRIVETRAIN_P_SPECIFIC = robotSpecific(0.037, 0.037, 0.0, 0.018d, 0.0, 0.25);

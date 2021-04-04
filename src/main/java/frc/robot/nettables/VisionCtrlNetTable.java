@@ -26,6 +26,8 @@ public class VisionCtrlNetTable {
     public static Supplier<Double> distanceToOuterPort;
     public static Supplier<Double> yawToPowerCell;
     public static Supplier<Double> yawToOuterPort;
+    public static Supplier<Double> yawToDiamond;
+
     //todo: for later integration
     //public static Supplier<Double> angleToOuterPort;
 
@@ -44,6 +46,9 @@ public class VisionCtrlNetTable {
         visionPowercellTable = inst.getTable(Config.VISION_TABLE_NAME_POWERCELL);
         distanceToPowerCell = () -> visionPowercellTable.getEntry(Config.DISTANCE_POWERCELL).getDouble(-1);
         yawToPowerCell = () -> visionPowercellTable.getEntry(Config.YAW_POWERCELL).getDouble(-99);
+
+        //visionPowercellTable = inst.getTable(Config.VISION_TABLE_NAME_POWERCELL);
+        yawToDiamond = () -> visionPowercellTable.getEntry(Config.YAW_TO_DIAMOND).getDouble(-99);
         
         
 

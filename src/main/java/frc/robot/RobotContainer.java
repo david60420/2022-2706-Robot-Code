@@ -184,7 +184,7 @@ public class RobotContainer {
         int selectFolder = 6;
         int selectPath = 1;
 
-        int selectorOne = 2;
+        int selectorOne = 1;
 
         if (analogSelectorOne != null){
             selectorOne = analogSelectorOne.getIndex();
@@ -998,17 +998,17 @@ public class RobotContainer {
                 {
                     //Galactic: path A
                     //first determine if the red or blue path
-                    double dYaw = VisionCtrlNetTable.yawToPowerCell.get();
-                    double distance = VisionCtrlNetTable.distanceToPowerCell.get();
+                    double dYaw = VisionCtrlNetTable.yawToDiamond.get();
+                    //double distance = VisionCtrlNetTable.distanceToPowerCell.get();
     
                     boolean bRed = false;
-                    if ( dYaw > -5.0 || dYaw < 5.0 )
+                    if ( dYaw > 0 )
                     {
                        bRed = true;
                     }
 
+
                     System.out.println("Path A, bRed: "+bRed);
-                    bRed = false;
    
                     //notes:
                     // different speed for picking up the ball
@@ -1033,11 +1033,11 @@ public class RobotContainer {
                         RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path A red");
                         
                         //Q: how long the intake command will take
-                        intakeCommand = new OperatorIntakeCommand();
+                        intakeCommand = new IntakeWithTime();
+                        Command rameseteCommands = new SequentialCommandGroup(ramsete1, ramsete2);
                         return new SequentialCommandGroup(
                             new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
-                            new ParallelCommandGroup(ramsete1),// intakeCommand),
-                            ramsete2);
+                            new ParallelRaceGroup(intakeCommand, rameseteCommands));
                         
                     }
                     else
@@ -1069,17 +1069,16 @@ public class RobotContainer {
                 {
                     //Galactic: path B
                     //first determine if the red or blue path
-                    double dYaw = VisionCtrlNetTable.yawToPowerCell.get();
-                    double distance = VisionCtrlNetTable.distanceToPowerCell.get();
+                    double dYaw = VisionCtrlNetTable.yawToDiamond.get();
+                    //double distance = VisionCtrlNetTable.distanceToPowerCell.get();
     
                     boolean bRed = false;
-                    if ( distance > 4.5 || distance < 5.5 )
+                    if ( dYaw > 0 )
                     {
                        bRed = true;
                     }
 
                     System.out.println("Path B, bRed: "+bRed);
-                    bRed = false;
    
                     //notes:
                     // different speed for picking up the ball
