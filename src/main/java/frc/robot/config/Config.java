@@ -227,7 +227,7 @@ public class Config {
     public static DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackWidth);
 
     // Ramsete Max Velocity and max acceleration
-    public static double kMaxSpeedMetersPerSecond = 1.85; // DS Video -> 3.0
+    public static double kMaxSpeedMetersPerSecond = 2.15; // DS Video -> 3.0
     public static double kMaxAccelerationMetersPerSecondSquared = 1.25; // DS Video -> 2.0 
 
     public static double kRamseteTransferSpeed = kMaxSpeedMetersPerSecond;

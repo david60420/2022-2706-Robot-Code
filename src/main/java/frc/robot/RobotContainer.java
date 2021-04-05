@@ -42,6 +42,8 @@ import frc.robot.commands.ramseteAuto.VisionPose;
 import frc.robot.commands.ramseteAuto.VisionPose.VisionType;
 
 import frc.robot.nettables.VisionCtrlNetTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -181,12 +183,12 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // Testing forced numbers
-        int selectFolder = 6;
+        int selectFolder = 7;
 
         //Note: if there is not selector,
         //      selectorOne will be forced to selectPath
-        int selectPath = 2;
-        int selectorOne = 2;
+        int selectPath = 1;
+        int selectorOne = 1;
 
         if (analogSelectorOne != null){
             selectorOne = analogSelectorOne.getIndex();
@@ -217,7 +219,9 @@ public class RobotContainer {
 
             case 6:
                 System.out.println("getAutoCommandIRAHCompetitionBot");
-                 return getAutoCommandIRAHCompetitionBot(selectorOne);
+                return getAutoCommandIRAHCompetitionBot(selectorOne);
+            case 7:
+                return getAutoCommandIRAHCompetitionBotGalacticPigeon(selectorOne);
         }
 
         return null;
@@ -1009,6 +1013,8 @@ public class RobotContainer {
                        bRed = true;
                     }
 
+                    //Hardcoded, will be removed later
+                    bRed = false;
                     System.out.println("Path A, bRed: " + bRed);
    
                     //notes:
@@ -1047,15 +1053,15 @@ public class RobotContainer {
                         //blue path
                         Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
                             new PoseScaled(0, 0, 0),
-                            new PoseScaled(3.313, -0.966, -18.677), //E6
-                            new PoseScaled(4.609, -0.061, 77.080), //B7
-                            new PoseScaled(5.432, 0.442, -61.919)), //C9
+                            new PoseScaled(3.638, -0.059, 0.220), //E6
+                            new PoseScaled(4.801, 1.609, 65.391), //B7
+                            new PoseScaled(6.154, 1.456, -32.300)), //C9
                             VisionPose.getInstance().getTrajConfig(0, Config.kRamseteGalacticSpeed, false));
                         RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path A blue");
     
                         Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
                             endPose(trajectory1), //C9
-                            new PoseScaled(8.531, -0.306, -10.635)),
+                            new PoseScaled(8.287, 0.542, 0.571)),
                             VisionPose.getInstance().getTrajConfig(Config.kRamseteGalacticSpeed, 0, false));
                         RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path A blue");
                         
@@ -1068,42 +1074,142 @@ public class RobotContainer {
                         
                     }
                 }
-                case 2:
+            case 2:
+            {
+                //Galactic: path B
+                //first determine if the red or blue path
+                double dYaw = VisionCtrlNetTable.yawToDiamond.get();
+                boolean bRed = false;
+                if ( dYaw > 0 )
                 {
-                    //Galactic: path B
-                    //first determine if the red or blue path
-                    double dYaw = VisionCtrlNetTable.yawToDiamond.get();
+                   bRed = true;
+                }
+
+                System.out.println("Path B, bRed: "+bRed);
+   
+                //notes:
+                // different speed for picking up the ball
+                // parallel command with picking power cell
+                if ( bRed )
+                {
+                    //red path
+
+                    Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                        new PoseScaled(0, 0, 0),
+                        new PoseScaled(1.614, 0.060, 1.978),   //B3
+                        new PoseScaled(3.123, -1.2, -42.539),  //D5
+                        new PoseScaled(4.142, -2.309, 6.680),  
+                        new PoseScaled(5.3, -0.288, 53.394)),  //B7
+                        VisionPose.getInstance().getTrajConfig(0, Config.kRamseteGalacticSpeed, false));
+                    RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path B red");
     
+                    Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
+                        endPose(trajectory1), //B7 
+                        new PoseScaled(6.034, 1.083, 27.334),
+                        new PoseScaled(8.484, 0.568, 3.911)), 
+                        VisionPose.getInstance().getTrajConfig(Config.kRamseteGalacticSpeed, 0, false));
+                    RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path B red");
+                        
+                    intakeCommand = new AutoIntakeCommand();
+                    Command rameseteCommands = new SequentialCommandGroup(ramsete1, ramsete2);
+                    return new SequentialCommandGroup(
+                        new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                        new LowerArm(),
+                        new ParallelRaceGroup(intakeCommand, rameseteCommands));
+                            
+                }
+                else
+                {
+                    //blue path
+                    //new PoseScaled(4.088, -1.503, -1.011)
+                    //new PoseScaled(4.500, 0.464, 88.462)
+                    //new PoseScaled(5.712, 0.261, -48.560)
+                    //new PoseScaled(7.600, -2.011, -44.253)
+                    //new PoseScaled(9.190, -2.380, -1.362)
+                    Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                        new PoseScaled(0, 0, 0),
+                        new PoseScaled(3.898, 0.028, -1.099), //D6
+                        new PoseScaled(5.604, 1.312, 6.987), //B8
+                        new PoseScaled(7.094, 0.237, -39.243)), //D10
+                        VisionPose.getInstance().getTrajConfig(0, Config.kRamseteGalacticSpeed, false));
+                    RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path B blue");
+    
+                    Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
+                        endPose(trajectory1), // 
+                        new PoseScaled(8.594, -0.084, -10.723)),
+                        VisionPose.getInstance().getTrajConfig(Config.kRamseteGalacticSpeed, 0, false));
+                    RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path B blue");
+                        
+                    /*new PoseScaled(0, 0, 0),
+                        new PoseScaled(3.993, -1.643, -23.467), //D6
+                        new PoseScaled(5.706, -0.314, 46.274), //B8
+                        new PoseScaled(7.281, -1.515, -23.203)), //D10
+                        endPose(trajectory1), //D10
+                        new PoseScaled(9.073, -2.231, -7.031)), //new PoseScaled(8.815, -0.222, 11.338)
+                    */
+
+                    intakeCommand = new AutoIntakeCommand();
+                    Command rameseteCommands = new SequentialCommandGroup(ramsete1, ramsete2);
+                    return new SequentialCommandGroup(
+                        new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                        new LowerArm(),
+                        new ParallelRaceGroup(intakeCommand, rameseteCommands));
+                            
+                }
+
+   
+   
+            }
+            
+                default:
+                    return null;
+        }
+    }
+
+    public Command getAutoCommandIRAHCompetitionBotGalacticPigeon(int selectorOne)
+    {
+        System.out.println("getAutoCommandIRAHCompetitionBotGalacticPigeon SelectorOne: "+selectorOne);
+        switch (selectorOne) {
+            case 0:
+                return null;
+
+            //Using the gyroheading angle to decide the red or blue path
+            //For the red path, the robot faces towards the first power cell so the angle is zero
+            //For the blue path, the robot faces towards the first power cell so the angle is around -20
+            //For both paths, the robot starts from the same location
+
+            case 1:
+                {
+                    //Galactic: path A
+                    //first determine if the red or blue path
+                    double currentAngle = DriveBaseHolder.getInstance().getPose().getRotation().getDegrees();
+                    System.out.println("currentAngle path A:"+currentAngle);
                     boolean bRed = false;
-                    if ( dYaw > 0 )
+                    if ( currentAngle > -10 )
                     {
                        bRed = true;
                     }
 
-                    System.out.println("Path B, bRed: "+bRed);
+                    //Hardcoded, will be removed later
+                    System.out.println("Path A, bRed: " + bRed);
    
-                    //notes:
-                    // different speed for picking up the ball
-                    // parallel command with picking power cell
                     if ( bRed )
                     {
                         //red path
-    
                         Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
                             new PoseScaled(0, 0, 0),
-                            new PoseScaled(1.614, 0.060, 1.978),   //B3
-                            new PoseScaled(3.123, -1.2, -42.539),  //D5
-                            new PoseScaled(4.142, -2.309, 6.680),  
-                            new PoseScaled(5.3, -0.288, 53.394)),  //B7
+                            new PoseScaled(1.062, 0.001, 0.220),    //C3 
+                            new PoseScaled(3.251, -0.731, -28.521), //D5  (y=-0.631)
+                            new PoseScaled(4.127, 1.060, 83.013)),  //A6
                             VisionPose.getInstance().getTrajConfig(0, Config.kRamseteGalacticSpeed, false));
-                        RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path B red");
+                        RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path A red heading");
     
                         Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
-                            endPose(trajectory1), //B7 
-                            new PoseScaled(6.034, 1.083, 27.334),
-                            new PoseScaled(8.484, 0.568, 3.911)), 
+                            endPose(trajectory1), //A6
+                            new PoseScaled(5.331, 1.608, 1.978),
+                            new PoseScaled(8.479, 1.769, 4.702)),
                             VisionPose.getInstance().getTrajConfig(Config.kRamseteGalacticSpeed, 0, false));
-                        RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path B red");
+                        RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path A red heading");
                         
                         intakeCommand = new AutoIntakeCommand();
                         Command rameseteCommands = new SequentialCommandGroup(ramsete1, ramsete2);
@@ -1111,51 +1217,102 @@ public class RobotContainer {
                             new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
                             new LowerArm(),
                             new ParallelRaceGroup(intakeCommand, rameseteCommands));
-                            
+                        
                     }
                     else
                     {
                         //blue path
-                        //new PoseScaled(4.088, -1.503, -1.011)
-                        //new PoseScaled(4.500, 0.464, 88.462)
-                        //new PoseScaled(5.712, 0.261, -48.560)
-                        //new PoseScaled(7.600, -2.011, -44.253)
-                        //new PoseScaled(9.190, -2.380, -1.362)
                         Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
-                            new PoseScaled(0, 0, 0),
-                            new PoseScaled(4.088, -1.503, -1.011), //D6
-                            new PoseScaled(4.500, 0.464, 88.462), //B8
-                            new PoseScaled(5.712, 0.261, -48.560)), //D10
+                            new PoseScaled(-0.039, 0.010, -17.095),//
+                            new PoseScaled(4.201, -0.985, -0.264), //E6 
+                            new PoseScaled(5.170, 0.529, 73.389), //B7 
+                            new PoseScaled(6.597, 0.627, -87.759)), //C9
                             VisionPose.getInstance().getTrajConfig(0, Config.kRamseteGalacticSpeed, false));
-                        RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path B blue");
+                        RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path A blue heading");
     
                         Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
-                            endPose(trajectory1), // 
-                            new PoseScaled(7.600, -2.011, -44.253),
-                            new PoseScaled(9.190, -2.380, -1.362)),
-                            //new PoseScaled(9.073, -2.231, -7.031)), //new PoseScaled(8.815, -0.222, 11.338)
+                            endPose(trajectory1), //C9
+                            new PoseScaled(8.747, -0.777, 2.285)),
                             VisionPose.getInstance().getTrajConfig(Config.kRamseteGalacticSpeed, 0, false));
-                        RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path B blue");
+                        RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path A blue heading");
                         
-                        /*new PoseScaled(0, 0, 0),
-                            new PoseScaled(3.993, -1.643, -23.467), //D6
-                            new PoseScaled(5.706, -0.314, 46.274), //B8
-                            new PoseScaled(7.281, -1.515, -23.203)), //D10
-                            endPose(trajectory1), //D10
-                            new PoseScaled(9.073, -2.231, -7.031)), //new PoseScaled(8.815, -0.222, 11.338)
-                        */
-
                         intakeCommand = new AutoIntakeCommand();
                         Command rameseteCommands = new SequentialCommandGroup(ramsete1, ramsete2);
                         return new SequentialCommandGroup(
-                            new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                            //new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters),
                             new LowerArm(),
                             new ParallelRaceGroup(intakeCommand, rameseteCommands));
-                            
+                        
                     }
-   
-   
                 }
+            case 2:
+            {
+                //Galactic: path B
+                //first determine if the red or blue path
+                double currentAngle = DriveBaseHolder.getInstance().getPose().getRotation().getDegrees();
+                System.out.println("currentAngle path A:"+currentAngle);
+                boolean bRed = false;
+                if ( currentAngle > -10 )
+                {
+                   bRed = true;
+                }
+
+                System.out.println("Path B, bRed: "+bRed);
+   
+                if ( bRed )
+                {
+                    //red path
+                    Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                        new PoseScaled(0, 0, 0),
+                        new PoseScaled(1.614, 0.060, 1.978),   //B3
+                        new PoseScaled(3.123, -1.2, -42.539),  //D5
+                        new PoseScaled(4.142, -2.309, 6.680),  
+                        new PoseScaled(5.3, -0.288, 53.394)),  //B7
+                        VisionPose.getInstance().getTrajConfig(0, Config.kRamseteGalacticSpeed, false));
+                    RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path B red heading");
+    
+                    Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
+                        endPose(trajectory1), //B7 
+                        new PoseScaled(6.034, 1.083, 27.334),
+                        new PoseScaled(8.484, 0.568, 3.911)), 
+                        VisionPose.getInstance().getTrajConfig(Config.kRamseteGalacticSpeed, 0, false));
+                    RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path B red heading");
+                        
+                    intakeCommand = new AutoIntakeCommand();
+                    Command rameseteCommands = new SequentialCommandGroup(ramsete1, ramsete2);
+                    return new SequentialCommandGroup(
+                        new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                        new LowerArm(),
+                        new ParallelRaceGroup(intakeCommand, rameseteCommands));
+                            
+                }
+                else
+                {
+                    //blue path
+                    Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                        new PoseScaled(0.005, -0.000, -20.566),
+                        new PoseScaled(3.796, -1.502, -0.220), //D6
+                        new PoseScaled(5.331, -0.6, 4.395), //B8 -0.241
+                        new PoseScaled(6.888, -1.224, -41.201)), //D10
+                        VisionPose.getInstance().getTrajConfig(0, Config.kRamseteGalacticSpeed, false));
+                    RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "Galactic Path B blue heading");
+    
+                    Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
+                        endPose(trajectory1), // 
+                        new PoseScaled(9.054, -1.622, 0.791)),
+                        VisionPose.getInstance().getTrajConfig(Config.kRamseteGalacticSpeed, 0, false));
+                    RamseteCommandMerge ramsete2 = new RamseteCommandMerge(trajectory2, "Galactic Path B blue heading");
+                    intakeCommand = new AutoIntakeCommand();
+                    Command rameseteCommands = new SequentialCommandGroup(ramsete1, ramsete2);
+                    return new SequentialCommandGroup(
+                        new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                        new LowerArm(),
+                        new ParallelRaceGroup(intakeCommand, rameseteCommands));
+                            
+                }
+   
+            }
+            
                 default:
                     return null;
         }
