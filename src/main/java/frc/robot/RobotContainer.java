@@ -187,8 +187,8 @@ public class RobotContainer {
 
         //Note: if there is not selector,
         //      selectorOne will be forced to selectPath
-        int selectPath = 1;
-        int selectorOne = 1;
+        int selectPath = 4;
+        int selectorOne = 0;
 
         if (analogSelectorOne != null){
             selectorOne = analogSelectorOne.getIndex();
@@ -650,7 +650,7 @@ public class RobotContainer {
 
                 // Church parking lot -> barrel racing
                 Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
-                    new PoseScaled(0.000, 0.000, 0.0),
+                    new PoseScaled(-0.2, 0, 0.0),
                     new PoseScaled(3.045, -0.143, -15.908),
                     new PoseScaled(3.5, -1.108, -102.612),
                     new PoseScaled(2.6, -1.75, 178.770),
@@ -659,16 +659,17 @@ public class RobotContainer {
                     new PoseScaled(5.503, 0.329, 22.544),
                     new PoseScaled(5.970, 1.45, 117.070),
                     new PoseScaled(4.627, 1.45, -137.681),
-                    new PoseScaled( 4.471, 0.460, -55.1),
+                    new PoseScaled(4.471, 0.460, -55.1),
                     new PoseScaled(6.748, -1.48, -4.8),
                     new PoseScaled(7.628, -0.456, 98.6),
-                    new PoseScaled(6.869, 0.136, 172.7),
+                    new PoseScaled(6.869, 0.25, 172.7),
                     new PoseScaled(4.191, 0.017, 179.78),
-                    new PoseScaled(-0.5, -0.0, -180)),
+                    new PoseScaled(-0.5, 0.8, -180)),
                     VisionPose.getInstance().getTrajConfig(0, 0, false));
                     RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAH-DSRobot-BarrelRacing-P1");
                 return new SequentialCommandGroup(new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
-                                                  ramsete1);
+                                                    new LowerArm(),
+                                                    ramsete1);
                 //                                   ramsete2,
                 //                                   ramsete3,
                 //                                   ramsete4);
@@ -687,6 +688,7 @@ public class RobotContainer {
                 return null;
 
             case 1: {
+                // Bounce
                 double turnAroundSpeed = Config.kMaxSpeedMetersPerSecond;
 
                 Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
@@ -697,8 +699,8 @@ public class RobotContainer {
 
                 Trajectory trajectory2 = TrajectoryGenerator.generateTrajectory(List.of(
                     endPose(trajectory1),
-                    new PoseScaled(2.7, -0.549, 100),
-                    new PoseScaled(3.026, -1.396, 179.648),
+                    new PoseScaled(2.55, -0.549, 90),
+                    new PoseScaled(3.026, -1.5, 179.648),
                     new PoseScaled(3.65, -0.188, -89.385),
                     new PoseScaled(3.819, 1.417, -90.176)),
                     VisionPose.getInstance().getTrajConfig(0, turnAroundSpeed, true));
@@ -709,7 +711,7 @@ public class RobotContainer {
                     new PoseScaled(3.9, -0.190, -90.791),
                     new PoseScaled(5.014, -1.555, -3.560),
                     new PoseScaled(5.971, 0.125, 90.835),
-                    new PoseScaled(5.991, 1.223, 88.989)),
+                    new PoseScaled(6.2, 1.223, 88.989)),
                     VisionPose.getInstance().getTrajConfig(0, 0, false));
                 RamseteCommandMerge ramsete3 = new RamseteCommandMerge(trajectory3, "IRAHPrac-Bounce-P3");
 
@@ -724,6 +726,7 @@ public class RobotContainer {
 //List.of(new TranslationScaled(6.2, 0.5)),
 // new PoseScaled(7.15, -0.1, 160),
                 return new SequentialCommandGroup(new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                                                new LowerArm(),
                                                 ramsete1,
                                                 ramsete2,
                                                 ramsete3,
@@ -1313,6 +1316,65 @@ public class RobotContainer {
    
             }
             
+
+                case 3: {
+                    // BarrelRacing
+                    Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                        new PoseScaled(0.000, 0.000, 0.0),
+                        new PoseScaled(2.954, 0.016, -0.791),
+                        new PoseScaled(4.008, -0.925, -90.615),
+                        new PoseScaled(2.927, -1.713, 176.660),
+                        new PoseScaled(1.935, -0.884, 90.220),
+                        new PoseScaled(2.973, 0.059, -2.109),
+                        new PoseScaled(5.311, -0.237, 1.187),
+                        new PoseScaled(6.345, 0.588, 92.988),
+                        new PoseScaled(5.300, 1.481, -174.067),
+                        new PoseScaled(4.391, 0.510, -80.859),
+                        new PoseScaled(5.460, -1.291, -27.378),
+                        new PoseScaled(6.848, -1.751, 3.999),
+                        new PoseScaled(7.835, -0.916, 96.987),
+                        new PoseScaled(6.751, -0.009, -171.958),
+                        new PoseScaled(5.992, -0.356, -149.326),
+                        new PoseScaled(2.940, -0.365, -172.002),
+                        new PoseScaled(-0.099, -0.35, -180)),
+                        VisionPose.getInstance().getTrajConfig(0, 0, false));
+                    RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAHComp-BarrelRacing");
+
+                    return new SequentialCommandGroup(
+                            new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.sample(0).poseMeters)),
+                            new LowerArm(),
+                            ramsete1);
+                }
+
+                case 4: {
+                    // Slolam
+                    Trajectory trajectory1 = TrajectoryGenerator.generateTrajectory(List.of(
+                    new PoseScaled(0.300, 0.000, -180),
+                    new PoseScaled(0.902, 0.165, -138.955),
+                    new PoseScaled(1.301, 0.947, -98.921),
+                    new PoseScaled(1.667, 1.8, -139.087),
+                    new PoseScaled(3.294, 2.0, 179.297),
+                    new PoseScaled(5.271, 2.0, 159.478),
+                    new PoseScaled(5.974, 1.289, 88.110),
+                    new PoseScaled(6.652, 0.234, -179.561),
+                    new PoseScaled(7.597, 1.148, -84.595),
+                    new PoseScaled(6.8, 2.078, 4.131),
+                    new PoseScaled(6.4, 1.169, 94.175),
+                    new PoseScaled(5.4, 0.144, 10),
+                    new PoseScaled(2.4, 0.129, 0.835),
+                    new PoseScaled(2.2, 0.75, -89.868),
+                    new PoseScaled(0.448, 0.9, 4.043),
+                    new PoseScaled(-0.824, 1.0, 3.604)),
+                    VisionPose.getInstance().getTrajConfig(0, 0, true));
+            RamseteCommandMerge ramsete1 = new RamseteCommandMerge(trajectory1, "IRAHPrac-Slolam-P1");
+            return new SequentialCommandGroup (
+                new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose(trajectory1.getInitialPose())),
+                new LowerArm(),
+                ramsete1
+            );//.alongWith(new LowerArm());
+        }
+                
+
                 default:
                     return null;
         }
