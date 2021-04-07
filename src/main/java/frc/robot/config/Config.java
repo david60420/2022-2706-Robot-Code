@@ -210,8 +210,8 @@ public class Config {
     public static int ticksPerRevolution = 4096;
 
     // Ramsete Default values
-    public static double kRamseteB = 2.0;
-    public static double kRamseteZeta = 0.7;
+    public static double kRamseteB = 2.3;
+    public static double kRamseteZeta = 0.73;
 
     // Frc-characterization data
     // id0: CompBot 
@@ -220,15 +220,15 @@ public class Config {
     // id3: DS Robot - Church Parking Lot 1.28, 3.13, 0.463
     public static double ksVolts = robotSpecific(1.1, 1.15, 1.32, 1.28);
     public static double kvVoltSecondsPerMeter = robotSpecific(3.03, 2.84, 4.65, 3.13);
-    public static double kaVoltSecondsSquaredPerMeter = robotSpecific(0.125, 0.4, 0.5, 0.463);
+    public static double kaVoltSecondsSquaredPerMeter = robotSpecific(0.4, 0.4, 0.5, 0.463);
 
     // Track width and kinematics
-    public static double kTrackWidth = robotSpecific(0.562, 0.57, 0.3136, 0.569);
+    public static double kTrackWidth = robotSpecific(0.6, 0.57, 0.3136, 0.569);
     public static DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackWidth);
 
     // Ramsete Max Velocity and max acceleration
-    public static double kMaxSpeedMetersPerSecond = 1.85; // DS Video -> 3.0
-    public static double kMaxAccelerationMetersPerSecondSquared = 1.25; // DS Video -> 2.0 
+    public static double kMaxSpeedMetersPerSecond = 2.4; // DS Video -> 3.0
+    public static double kMaxAccelerationMetersPerSecondSquared = 2.4; // DS Video -> 2.0 
 
     public static double kRamseteTransferSpeed = kMaxSpeedMetersPerSecond;
     public static double kRamseteTurnAroundSpeed = kMaxSpeedMetersPerSecond; 
@@ -297,7 +297,7 @@ public class Config {
     // id3: 0.0888 from church parking lot, 0.0105 from basement -> averaged to 0.05 (idk but it worked)
     public static int DRIVETRAIN_SLOTID_RAMSETE = 1;
     public static double RAMSETE_KF = 0;
-    public static double RAMSETE_KP = robotSpecific(0.00642, 0.0207, 0.0434, 0.05); //0.0884//0.0105
+    public static double RAMSETE_KP = robotSpecific(0.03, 0.0207, 0.0434, 0.05); //0.0884//0.0105
     public static double RAMSETE_KI = 0;
     public static double RAMSETE_KD = 0;
     public static double RAMSETE_ALLOWABLE_PID_ERROR = 0; // <- never stop the P loop from running

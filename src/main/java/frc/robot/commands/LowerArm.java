@@ -36,7 +36,7 @@ public class LowerArm extends CommandBase {
         //     return;
         // }
         armSub.resetPosition(ticksAtStartingPosisiton);
-        armSub.moveArm(0.7);
+        armSub.moveArm(1.0);
         state = 1;
     }
 
