@@ -20,11 +20,6 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
     private static final int FORWARD_LIMIT_TICKS = Config.robotSpecific(4150, 900); //2200
     private static final int REVERSE_LIMIT_TICKS = Config.robotSpecific(3500, 0); // 1300  
 
-    // Percent output needed to hold the arm at horizontal
-    private static final double PERCENT_AT_HORIZONTAL = Config.ARM_PERCENT_AT_HORIZONTAL;
-
-    // private static final int EXTRA_POWER_RANGE_TICK = REVERSE_LIMIT_TICKS + 300;
-    // private static final double EXTRa_POWER_PERCENT = 0.2;
 
     // Tick count of the arm at horizontal. In this case the lower limit is horizontal
     private static final int ARM_HORIZONTAL_TICKS = REVERSE_LIMIT_TICKS;//+50;
@@ -36,7 +31,6 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
 
     private int currentPosition = REVERSE_LIMIT_TICKS;
 
-    // TODO Change placeholder value to robotSpecific
     WPI_TalonSRX armTalon;
     ErrorCode errorCode;
 
@@ -55,6 +49,7 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         armTalon.configFactoryDefault();
 
         // Allow the arm to be moved easily when disabled
+        // WOULD DESTORY GEARBOX IF ARMS MOVED MANUALLY WHILE IN BRAKE MODE
         armTalon.setNeutralMode(NeutralMode.Coast);
 
         // Setup the talon, recording the error code
@@ -121,7 +116,7 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
             talonErrorCondition.setState(true);
         } 
 
-        armTalon.setSelectedSensorPosition(0);
+        // armTalon.setSelectedSensorPosition(0);
     }
 
     public void addToCurrentPosition(int increment) {
@@ -175,26 +170,21 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         SmartDashboard.putNumber("Lower Limit", REVERSE_LIMIT_TICKS);
         SmartDashboard.putNumber("Upper Limit", FORWARD_LIMIT_TICKS);
         // if (Config.ARM_TALON != -1)
-            SmartDashboard.putNumber("Arm Motor Ticks", currentTicks);
+        SmartDashboard.putNumber("Arm Motor Ticks", currentTicks);
         SmartDashboard.putNumber("Arm Angle", toDeg(currentTicks));
         SmartDashboard.putNumber("Desired Position", currentPosition);
 
         
         // Set the desired position every cycle and update the gravity compensation at the current angle.
         double currentAngleFromHorizontal = toDeg(currentTicks - ARM_HORIZONTAL_TICKS);
-        double gravityCompensation = PERCENT_AT_HORIZONTAL * Math.cos(Math.toRadians(currentAngleFromHorizontal) * Config.ARM_COS_VERT_STRETCH);
+        double gravityCompensation = getArbFeedforward(currentAngleFromHorizontal);
+        
         armTalon.set(ControlMode.MotionMagic, currentPosition, DemandType.ArbitraryFeedForward, gravityCompensation);
 
         SmartDashboard.putNumber("Arm Gravity Compensation", gravityCompensation);
         SmartDashboard.putNumber("Arm Error", armTalon.getClosedLoopError()); 
         SmartDashboard.putBoolean("Arm Limit Switch", armTalon.getSensorCollection().isRevLimitSwitchClosed());
     
-        // If near lower limit, stop the motor.
-        if (Config.ARM_TALON != 1) {
-            // if(currentTicks <= REVERSE_LIMIT_TICKS + 25) {
-            //     armTalon.set(0.0);
-            // }
-        }
     }
 
     public boolean reachedSetpoint(int index) {
@@ -222,5 +212,40 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         deg /= 10;
 
         return deg;
+    }
+
+    /**
+     * Feedforward for Gravity and Spring Compensation
+     * 
+     * @param angle Angle considering 0 degrees as horizontal. 
+     *          (arm has to move up slightly to get to horiztonal,
+     *           so 0 encoder ticks doesn't mean horizontal)
+     * 
+     * @return ArbFF value between -1 & 1 to pass as a DemandType.ArbitraryFeedforward to talon
+     */
+    private double getArbFeedforward(double deg) {
+
+        // Equation that takes into account spring and gravity.
+        // Gravity of an arm can be mapped with a sin or cos function.
+        // The spring equation is a mechanical thing that D&F gave me.
+        // Equation is V=5.51×sin(∅+10°)-0.062×(∅-5°)
+        // V for volts and ∅ for angle (math was simplier if 0 degrees as arm is vertical)
+        // Note this equation is specfic to the torsion spring on the 2020 robot 
+        // I recommand asking D&F for an equation to match an arm with a spring in future years.
+
+        // java.lang.Math.sin needs radians
+
+        // Equation demands a the complementary angle
+        double theta = Math.toRadians(90 - deg);
+
+        double springTorsionRate = 0.062; // Should be accurate, may need to be updated
+        double torqueAtHorizontal = 5.51; // UPDATE BASED ON MEASURED VALUES
+        double springPreloadedAngle = Math.toRadians(5); // Should be accurate, may need to be updated
+
+        double volts = torqueAtHorizontal * Math.sin(theta) - springTorsionRate * (theta - springPreloadedAngle); // 5.51 and 5 may need to be adjusted
+        
+        double arbFF = volts / 12;
+
+        return arbFF;
     }
 }
