@@ -17,8 +17,8 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ColorSensorSubsystem extends SubsystemBase {
-  private final ColorSensorV3 colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
-  private final ColorMatch colorMatch = new ColorMatch();
+  private final ColorSensorV3 colorSensor;
+  private final ColorMatch colorMatch;
 
   /**
    * Copied values from RevRobotic's ColorMatch example
@@ -30,6 +30,9 @@ public class ColorSensorSubsystem extends SubsystemBase {
   public static final Color kYellowTarget = ColorMatch.makeColor(0.361, 0.524, 0.113);
 
   public ColorSensorSubsystem() {
+    colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
+    colorMatch = new ColorMatch();
+
     // Add the target values to the ColorMatch class
     colorMatch.addColorMatch(kBlueTarget);
     colorMatch.addColorMatch(kGreenTarget);

@@ -11,14 +11,42 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
+import edu.wpi.first.wpilibj.trajectory.constraint.MaxVelocityConstraint;
+import edu.wpi.first.wpilibj.trajectory.constraint.RectangularRegionConstraint;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.*;
 import frc.robot.config.Config;
 import frc.robot.sensors.AnalogSelector;
 import frc.robot.subsystems.*;
-import frc.robot.commands.ArcadeDriveWithJoystick;
+import frc.robot.commands.ramseteAuto.AutoRoutines;
+import frc.robot.commands.ramseteAuto.DriveToWaypoint;
+import frc.robot.commands.ramseteAuto.PassThroughWaypoint;
+import frc.robot.commands.ramseteAuto.PoseScaled;
+import frc.robot.commands.ramseteAuto.RamseteCommandMerge;
+import frc.robot.commands.ramseteAuto.TranslationScaled;
+import frc.robot.commands.ramseteAuto.VisionPose;
+import frc.robot.commands.ramseteAuto.VisionPose.VisionType;
 
+import frc.robot.nettables.VisionCtrlNetTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -73,6 +101,12 @@ public class RobotContainer {
             armSubsystem = ArmSubsystem.getInstance();
 
         configureButtonBindings();
+
+        // Only construct the RelaySubsystem if it has relays which is only on mini bot
+        // Atm the only way to tell if its the mini bot is if it has follower motors
+        if (Config.robotId == 2) {
+            RelaySubsystem.getInstance();
+        }
     }
 
     /**
@@ -110,15 +144,37 @@ public class RobotContainer {
         moveToOuterPort = new TurnToOuterPortCommand(true, 3.0, 2.0);
         new JoystickButton(driverStick, XboxController.Button.kA.value).whenHeld(moveToOuterPort, true);
 
-        reverseArmManually = new MoveArmManuallyCommand(-0.35);
-        new JoystickButton(driverStick, XboxController.Button.kX.value).whenHeld(reverseArmManually);
+        if (Config.ARM_TALON != -1) {
+            reverseArmManually = new MoveArmManuallyCommand(-0.35);
+            new JoystickButton(driverStick, XboxController.Button.kX.value).whenHeld(reverseArmManually);
 
-        moveArm = new MoveArmManuallyCommand(10);
-        new JoystickButton(driverStick, XboxController.Button.kY.value).whenHeld(moveArm);
+            moveArm = new MoveArmManuallyCommand(10);
+            new JoystickButton(driverStick, XboxController.Button.kY.value).whenHeld(moveArm);
+
+            Command lowerArm = new LowerArm();
+            // new JoystickButton(driverStick, XboxController.Button.kB.value).whenActive(lowerArm);
+        }
 
         sensitiveDriving = new SensitiveDriverControl(driverStick);
         new JoystickButton(driverStick, XboxController.Button.kBumperLeft.value).whenHeld(sensitiveDriving);
 
+        // Command resetHeading = new InstantCommand(() -> DriveBaseHolder.getInstance().resetHeading(Rotation2d.fromDegrees(0)));
+        // new JoystickButton(driverStick, XboxController.Button.kStart.value).whenActive(resetHeading);
+
+        //@todo: put the robot at the same place whenever we start a new path
+        Command resetHeading = new InstantCommand(() -> DriveBaseHolder.getInstance().resetPose( new Pose2d()));
+        new JoystickButton(driverStick, XboxController.Button.kStart.value).whenActive(resetHeading);
+        
+        Command printOdometry = new PrintOdometry();
+        new JoystickButton(driverStick, XboxController.Button.kBack.value).whenPressed(printOdometry);
+
+
+        if (Config.FEEDER_SUBSYSTEM_TALON != -1) {
+            // Set default command of feeder to index when limit is pressed
+            Command indexFeeder = new IndexBall().andThen(new DoNothingForSeconds(1.5));
+            Command pollInputSwitch = new PollLimitSwitch(indexFeeder, FeederSubsystem.getInstance(), FeederSubsystem::isBallAtInput);
+            FeederSubsystem.getInstance().setDefaultCommand(pollInputSwitch); 
+        }
     }
 
     /**
@@ -127,27 +183,48 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        int selectorOne = 1;
+        // Testing forced numbers
+        int selectFolder = 7;
+
+        //Note: if there is not selector,
+        //      selectorOne will be forced to selectPath
+        int selectPath = 4;
+        int selectorOne = 0;
 
         if (analogSelectorOne != null){
             selectorOne = analogSelectorOne.getIndex();
+            System.out.println("SELECTOR SWITCH NOT NULL AND ID " + selectorOne);
         }
         logger.info("Selectors: " + selectorOne);
 
-        if (selectorOne == 0) {
-            // This is our 'do nothing' selector
-            return null;
-        } else if (selectorOne == 1) {
-            return new SpinUpShooterWithTime(Config.RPM.get(), 7).alongWith(new RunFeederCommandWithTime(-0.7, 7)).andThen(new DriveWithTime(0.5, 0.5, 0.5));
-           // return new DriveWithTime(AUTO_DRIVE_TIME,  AUTO_LEFT_MOTOR_SPEED,  AUTO_RIGHT_MOTOR_SPEED);
-        } else if(selectorOne == 2) {
-            return new DriveWithTime(0.5, 0.5, 0.5);
+        if (Config.hasSelectorSwitches == false) {
+            selectorOne = selectPath;
+            logger.info("No Selector Switches - Forced Id: " + selectorOne);
+        }
+        
+        switch (selectFolder) {
+            case 1:
+                return AutoRoutines.getAutoCommandTest(selectorOne); 
+
+            case 2:
+                return AutoRoutines.getAutoCommandIRAH(selectorOne);
+
+            case 3:
+                return AutoRoutines.getAutoCommandIRAHDeepSpaceRobot(selectorOne);
+
+            case 4:
+                return AutoRoutines.getAutoCommandIRAHPracBot(selectorOne);
+
+            case 5:
+                return AutoRoutines.getAutoCommandIRAHMiniBot(selectorOne);
+
+            case 6:
+                return AutoRoutines.getAutoCommandIRAHCompetitionBot(selectorOne);
+                
+            case 7:
+                return AutoRoutines.getAutoCommandIRAHCompetitionBotGalacticPigeon(selectorOne);
         }
 
-
-
-
-        // Also return null if this ever gets to here because safety
         return null;
     }
 

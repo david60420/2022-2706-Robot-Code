@@ -44,8 +44,6 @@ public class ShooterSubsystem extends SubsystemBase {
 
     private final int RPM_TOLERANCE = 75;
 
-    public DigitalInput shooterDigitalInput;
-
     private ShooterSubsystem() {
 
         // Initialize the subsystem if the shooter exists
@@ -78,9 +76,6 @@ public class ShooterSubsystem extends SubsystemBase {
         m_pidController.setD(D_SHOOTERSUBSYSTEM.get());
 
         m_shooter.setSmartCurrentLimit(60);
-
-        shooterDigitalInput = new DigitalInput(Config.shooterAnalogSensor);
-
     }
 
     public boolean isActive() {

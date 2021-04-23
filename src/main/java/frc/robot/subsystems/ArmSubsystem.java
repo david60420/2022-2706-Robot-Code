@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatusFrame;
@@ -14,8 +15,8 @@ import frc.robot.config.Config;
 public class ArmSubsystem extends ConditionalSubsystemBase {
 
     // TODO Change placeholder values to actual limits
-    private static final int FORWARD_LIMIT_TICKS = Config.robotSpecific(4150, 2200);
-    private static final int REVERSE_LIMIT_TICKS = Config.robotSpecific(3500, 1300);
+    private static final int FORWARD_LIMIT_TICKS = 800;//Config.robotSpecific(4150, 2200);
+    private static final int REVERSE_LIMIT_TICKS = 0;//Config.robotSpecific(3500, 1300);
 
     private static final int acceptableError = 50;
 
@@ -29,8 +30,8 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
     ErrorCode errorCode;
 
     private static final int[] setpoints = {
-            3850,
-            3000,
+            0// 3850,
+            // 3000,
         };
 
 
@@ -56,8 +57,8 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         /* Config the peak and nominal outputs, 12V means full */
         armTalon.configNominalOutputForward(0, Config.CAN_TIMEOUT_SHORT);
         armTalon.configNominalOutputReverse(0, Config.CAN_TIMEOUT_SHORT);
-        armTalon.configPeakOutputForward(1, Config.CAN_TIMEOUT_SHORT);
-        armTalon.configPeakOutputReverse(-1, Config.CAN_TIMEOUT_SHORT);
+        armTalon.configPeakOutputForward(0.3, Config.CAN_TIMEOUT_SHORT);
+        armTalon.configPeakOutputReverse(-0.3, Config.CAN_TIMEOUT_SHORT);
 
         armTalon.configAllowableClosedloopError(0, Config.ARM_ALLOWABLE_CLOSED_LOOP_ERROR_TICKS, Config.CAN_TIMEOUT_SHORT);
 
@@ -96,6 +97,8 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         if (errorCode.value == 0) {
             talonErrorCondition.setState(true);
         }
+
+        currentPosition = (int) armTalon.getSelectedSensorPosition();
     }
 
     public void addToCurrentPosition(int increment) {
@@ -153,7 +156,7 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         SmartDashboard.putNumber("Desired Position", currentPosition);
 
 
-        armTalon.set(ControlMode.Position, currentPosition);
+        // armTalon.set(ControlMode.Position, currentPosition);
         if (Config.ARM_TALON != 1) {
             if(armTalon.getSelectedSensorPosition() <= REVERSE_LIMIT_TICKS + 25) {
                 armTalon.set(0.0);
@@ -183,4 +186,24 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
 
         return deg;
     }
+
+
+    /** 
+     * Getters and setters, maybe temporay, to make lower arm work
+    */
+    public int getPosistion() {
+        return (int) armTalon.getSelectedSensorPosition();
+    }
+    public void setPosition(int ticks, double arbFF) {
+        armTalon.set(ControlMode.Position, ticks, DemandType.ArbitraryFeedForward, arbFF);
+    }
+    public void resetPosition(int ticks) {
+        armTalon.setSelectedSensorPosition(ticks);
+    }
+    public void stopMotor() {
+        armTalon.stopMotor();
+    }
+
+
+
 }

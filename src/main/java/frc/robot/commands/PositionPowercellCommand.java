@@ -44,7 +44,7 @@ public class PositionPowercellCommand extends CommandBase {
      */
     @Override
     public boolean isFinished() {
-           return !ShooterSubsystem.getInstance().shooterDigitalInput.get();
+           return FeederSubsystem.isBallAtOutput();
     }
 
     /**

@@ -15,7 +15,7 @@ public class IntakeSubsystem extends ConditionalSubsystemBase {
     private final static IntakeSubsystem INSTANCE = new IntakeSubsystem();
 
     // The supplier of the intake speed
-    private final static FluidConstant<Double> INTAKE_SPEED = new FluidConstant<>("intake-target-speed", 0.80d)
+    private final static FluidConstant<Double> INTAKE_SPEED = new FluidConstant<>("intake-target-speed", 1.0d)
             .registerToTable(Config.constantsTable);
 
     // The intake motor (if any)
@@ -29,7 +29,7 @@ public class IntakeSubsystem extends ConditionalSubsystemBase {
     private IntakeSubsystem() {
 
         createCondition("operatorActivated", SubsystemConditionStates.TELEOP);
-        createCondition("dummyPlaceholder", SubsystemConditionStates.AUTO).setState(false);
+        createCondition("autoActivated", SubsystemConditionStates.AUTO);
         if (Config.INTAKE_MOTOR != -1) {
             intakeMotor = new TalonSRX(Config.INTAKE_MOTOR);
             intakeMotor.setInverted(true);

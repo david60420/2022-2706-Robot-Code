@@ -19,12 +19,15 @@ public class VisionCtrlNetTable {
     private NetworkTable visionControlTable;
     private NetworkTableEntry VisionShutDownEntry;
     private NetworkTableEntry VisionStartUpEntry;
-    private static NetworkTable mergeVisionTable;
+    private static NetworkTable visionOuterPortTable;
+    private static NetworkTable visionPowercellTable;
 
     public static Supplier<Double> distanceToPowerCell;
     public static Supplier<Double> distanceToOuterPort;
     public static Supplier<Double> yawToPowerCell;
     public static Supplier<Double> yawToOuterPort;
+    public static Supplier<Double> yawToDiamond;
+
     //todo: for later integration
     //public static Supplier<Double> angleToOuterPort;
 
@@ -36,16 +39,23 @@ public class VisionCtrlNetTable {
         VisionShutDownEntry.setBoolean(false);
         VisionStartUpEntry.setBoolean(false);
 
-        mergeVisionTable = inst.getTable(Config.VISION_TABLE_NAME_OUTERPORT);
-        distanceToPowerCell = () -> mergeVisionTable.getEntry(Config.DISTANCE_POWERCELL).getDouble(-1);
-        distanceToOuterPort = () -> mergeVisionTable.getEntry(Config.DISTANCE_OUTER_PORT).getDouble(-1);
-        yawToPowerCell = () -> mergeVisionTable.getEntry(Config.YAW_POWERCELL).getDouble(-1);
-        yawToOuterPort = () -> mergeVisionTable.getEntry(Config.YAW_OUTER_PORT).getDouble(-99);
+        visionOuterPortTable = inst.getTable(Config.VISION_TABLE_NAME_OUTERPORT);
+        distanceToOuterPort = () -> visionOuterPortTable.getEntry(Config.DISTANCE_OUTER_PORT).getDouble(-1);
+        yawToOuterPort = () -> visionPowercellTable.getEntry(Config.YAW_OUTER_PORT).getDouble(-99);
+
+        visionPowercellTable = inst.getTable(Config.VISION_TABLE_NAME_POWERCELL);
+        distanceToPowerCell = () -> visionPowercellTable.getEntry(Config.DISTANCE_POWERCELL).getDouble(-1);
+        yawToPowerCell = () -> visionPowercellTable.getEntry(Config.YAW_POWERCELL).getDouble(-99);
+
+        visionPowercellTable = inst.getTable(Config.VISION_TABLE_NAME_OUTERPORT);
+        yawToDiamond = () -> visionPowercellTable.getEntry(Config.YAW_TO_DIAMOND).getDouble(-99);
+        
+        
 
     }
 
     public static void setTapeMode() {
-        mergeVisionTable.getEntry("Tape").setBoolean(true);
+        visionOuterPortTable.getEntry("Tape").setBoolean(true);
     }
 
     /**

@@ -12,6 +12,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import frc.robot.Robot;
 import frc.robot.config.Config;
 
 
@@ -33,8 +34,8 @@ public class DriveBasePre2020 extends DriveBase {
         
         differentialDrive = new DifferentialDrive(leftFrontTalon, rightFrontTalon);
         
-        
-        var pigeonTalon = Config.robotSpecific(null, null, rightRearTalon, leftFrontTalon, leftRearTalon, talon5plyboy);
+        //Config.PIGEON_ID
+        var pigeonTalon = Config.robotSpecific(null, null, null, null, leftRearTalon, talon5plyboy);
         if (pigeonTalon != null) {
             pigeon = new PigeonIMU(pigeonTalon);
             pigeon.setFusedHeading(0.0, 30);
