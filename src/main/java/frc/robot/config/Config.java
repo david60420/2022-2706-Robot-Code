@@ -167,7 +167,8 @@ public class Config {
     
     public static boolean INVERT_ARM_TALON = robotSpecific(true, true, false);
     
-    public static int ARM_ALLOWABLE_CLOSED_LOOP_ERROR_TICKS = 30;
+
+    public static int ARM_ALLOWABLE_CLOSED_LOOP_ERROR_TICKS = 0;
     
     // Timeouts for sending CAN bus commands
     public static final int CAN_TIMEOUT_SHORT = 10;
@@ -183,11 +184,18 @@ public class Config {
     public static final boolean TELEOP_SQUARE_JOYSTICK_INPUTS = true;
     
     // PIDF values for the arm
-    public static double ARM_PID_P = robotSpecific(1); // 5
-    public static double ARM_PID_I = robotSpecific(0.0);
-    public static double ARM_PID_D = robotSpecific(0.0);
-    public static double ARM_PID_F = robotSpecific(0.05);
+    public static double ARM_PID_P = 9.5;//robotSpecific(2); // 5   0.5115
+    public static double ARM_PID_I = 0.015;
+    public static double ARM_PID_D = 1.0;
+    public static double ARM_PID_F = 2.5;//robotSpecific(6); // 0.05  2.0  7
+    public static double ARM_PID_IZONE = 20;
 
+    public static int ARM_PID_CRUISE_VELOCITY = robotSpecific(50); //30
+    public static int ARM_PID_ACCELERATION = robotSpecific(17); //15
+    public static int ARM_PID_SCURVE = robotSpecific(5);
+
+    public static double ARM_PERCENT_AT_HORIZONTAL = robotSpecific(0.0, 0.13);//0.22/1.5);
+    public static double ARM_COS_VERT_STRETCH = robotSpecific(0.0, 1.0);//0.6);
 
     // Define a global constants table for subsystems to use
     public static NetworkTable constantsTable = NetworkTableInstance.getDefault().getTable("constants");

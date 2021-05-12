@@ -141,18 +141,18 @@ public class RobotContainer {
         positionPowercell = new PositionPowercellCommand();
         new JoystickButton(controlStick, XboxController.Button.kBumperRight.value).toggleWhenActive(positionPowercell, true);
 
-        moveToOuterPort = new TurnToOuterPortCommand(true, 3.0, 2.0);
-        new JoystickButton(driverStick, XboxController.Button.kA.value).whenHeld(moveToOuterPort, true);
-
         if (Config.ARM_TALON != -1) {
-            reverseArmManually = new MoveArmManuallyCommand(-0.35);
-            new JoystickButton(driverStick, XboxController.Button.kX.value).whenHeld(reverseArmManually);
+            InstantCommand armSetpoint0 = new InstantCommand(() -> ArmSubsystem.getInstance().setpoint(0));  //new MoveArmManuallyCommand(-0.35);
+            new JoystickButton(driverStick, XboxController.Button.kX.value).whenHeld(armSetpoint0);
 
-            moveArm = new MoveArmManuallyCommand(10);
-            new JoystickButton(driverStick, XboxController.Button.kY.value).whenHeld(moveArm);
+            InstantCommand armSetpoint1 = new InstantCommand(() -> ArmSubsystem.getInstance().setpoint(1)); // new MoveArmManuallyCommand(10);
+            new JoystickButton(driverStick, XboxController.Button.kY.value).whenHeld(armSetpoint1);
 
-            Command lowerArm = new LowerArm();
-            // new JoystickButton(driverStick, XboxController.Button.kB.value).whenActive(lowerArm);
+            InstantCommand armSetpoint2 = new InstantCommand(() -> ArmSubsystem.getInstance().setpoint(2));
+            new JoystickButton(driverStick, XboxController.Button.kB.value).whenHeld(armSetpoint2);
+
+            InstantCommand armSetpoint3 = new InstantCommand(() -> ArmSubsystem.getInstance().setpoint(3));
+            new JoystickButton(driverStick, XboxController.Button.kA.value).whenHeld(armSetpoint3);
         }
 
         sensitiveDriving = new SensitiveDriverControl(driverStick);
