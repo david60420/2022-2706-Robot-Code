@@ -40,7 +40,7 @@ public class DriveBase2020 extends DriveBase {
     // Logging
     private Logger logger = Logger.getLogger("DriveBase2020");
 
-    private NetworkTableEntry leftEncoder, rightEncoder, currentX, currentY, currentAngle;
+    private NetworkTableEntry leftEncoder, rightEncoder, currentX, currentY, currentAngle, currentPose;
 
     public DriveBase2020() {
         leftMaster = new WPI_TalonSRX(Config.LEFT_MASTER);
@@ -101,6 +101,7 @@ public class DriveBase2020 extends DriveBase {
         currentX = table.getEntry("currentX");
         currentY = table.getEntry("currentY");
         currentAngle = table.getEntry("currentAngle");
+        currentPose = table.getEntry("currentPose");
         
 
     }
@@ -343,6 +344,8 @@ public class DriveBase2020 extends DriveBase {
             currentX.setNumber(pose.getX());
             currentY.setNumber(pose.getY());
             currentAngle.setNumber(pose.getRotation().getDegrees());
+
+            currentPose.setString(String.format("new PoseScaled(%.3f, %.3f, %.3f)", pose.getX(), pose.getY(), pose.getRotation().getDegrees()));
         }
 
         // System.out.println("VISION TARGET: " + VisionPose.getInstance().getTargetTranslation(VisionType.TPracticeTarget)); 
