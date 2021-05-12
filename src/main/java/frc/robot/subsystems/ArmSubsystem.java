@@ -17,13 +17,15 @@ import frc.robot.config.Config;
 public class ArmSubsystem extends ConditionalSubsystemBase {
 
     // TODO Change placeholder values to actual limits
-    private static final int FORWARD_LIMIT_TICKS = 800;//Config.robotSpecific(4150, 2200);
+    private static final int FORWARD_LIMIT_TICKS = 885;//Config.robotSpecific(4150, 2200);
     private static final int REVERSE_LIMIT_TICKS = 0;//Config.robotSpecific(3500, 1300);
+
+    // Tick count of the arm at horizontal. In this case the lower limit is horizontal
+    private static final int ARM_HORIZONTAL_TICKS = REVERSE_LIMIT_TICKS;
 
     private static final int acceptableError = 50;
 
     private static ArmSubsystem INSTANCE = new ArmSubsystem();
-
 
     private int currentPosition = REVERSE_LIMIT_TICKS;
 
@@ -31,8 +33,10 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
     ErrorCode errorCode;
 
     private static final int[] setpoints = {
-            0// 3850,
-            // 3000,
+            0,
+            300,
+            600,
+            850
         };
 
 
@@ -58,11 +62,11 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
 
         armTalon.setInverted(Config.INVERT_ARM_TALON);
 
-        /* Config the peak and nominal outputs, 12V means full */
-        armTalon.configNominalOutputForward(0, Config.CAN_TIMEOUT_SHORT);
-        armTalon.configNominalOutputReverse(0, Config.CAN_TIMEOUT_SHORT);
-        armTalon.configPeakOutputForward(0.3, Config.CAN_TIMEOUT_SHORT);
-        armTalon.configPeakOutputReverse(-0.3, Config.CAN_TIMEOUT_SHORT);
+        // /* Config the peak and nominal outputs, 12V means full */
+        // armTalon.configNominalOutputForward(0, Config.CAN_TIMEOUT_SHORT);
+        // armTalon.configNominalOutputReverse(0, Config.CAN_TIMEOUT_SHORT);
+        // armTalon.configPeakOutputForward(1, Config.CAN_TIMEOUT_SHORT);
+        // armTalon.configPeakOutputReverse(-1, Config.CAN_TIMEOUT_SHORT);
 
         armTalon.configAllowableClosedloopError(0, Config.ARM_ALLOWABLE_CLOSED_LOOP_ERROR_TICKS, Config.CAN_TIMEOUT_SHORT);
 
@@ -85,16 +89,16 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         // armTalon.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 20, Config.CAN_TIMEOUT_LONG);
         // armTalon.setStatusFramePeriod(StatusFrame.Status_13_Base_PIDF0, 20, Config.CAN_TIMEOUT_LONG);
 
+
         //    Enable forward soft limit and set the value in encoder ticks
         armTalon.configForwardSoftLimitEnable(true);
         armTalon.configForwardSoftLimitThreshold(FORWARD_LIMIT_TICKS, Config.CAN_TIMEOUT_LONG);
-
-        // armTalon.configReverseSoftLimitEnable(true);
-        // armTalon.configReverseSoftLimitThreshold(REVERSE_LIMIT_TICKS, Config.CAN_TIMEOUT_SHORT);
         
         // Limit switch 
-        armTalon.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen, Config.CAN_TIMEOUT_SHORT);
+        // armTalon.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen, Config.CAN_TIMEOUT_SHORT);
         armTalon.configClearPositionOnLimitR(true, Config.CAN_TIMEOUT_SHORT);
+
+
 
         // Max voltage to apply with the talon. 12 is the maximum
         // armTalon.configVoltageCompSaturation(12, Config.CAN_TIMEOUT_LONG);
@@ -147,7 +151,6 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
     public void setpoint(int setpointIndex) {
         if(setpointIndex < setpoints.length) {
             currentPosition = setpoints[setpointIndex];
-           // armTalon.set(ControlMode.Position, setpoints[setpointIndex]);
         } else {
             DriverStation.reportError("Invalid arm position [Array index out of bounds]", false);
         }
@@ -169,13 +172,20 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         SmartDashboard.putNumber("Arm Motor Ticks", currentTicks);
         SmartDashboard.putNumber("Arm Angle", toDeg(currentTicks));
         SmartDashboard.putNumber("Desired Position", currentPosition);
+        SmartDashboard.putNumber("Arm Pos Error", currentPosition - currentTicks);
 
         
         // Set the desired position every cycle and update the gravity compensation at the current angle.
         double currentAngleFromHorizontal = toDeg(currentTicks - ARM_HORIZONTAL_TICKS);
         double gravityCompensation = getArbFeedforward(currentAngleFromHorizontal);
         
-        armTalon.set(ControlMode.MotionMagic, currentPosition, DemandType.ArbitraryFeedForward, gravityCompensation);
+        if (currentPosition < 3 && currentTicks < 3) {
+            armTalon.set(-0.1);
+        } else {
+            armTalon.set(ControlMode.MotionMagic, currentPosition, DemandType.ArbitraryFeedForward, gravityCompensation);
+        }
+
+        
 
         SmartDashboard.putNumber("Arm Gravity Compensation", gravityCompensation);
         SmartDashboard.putNumber("Arm Error", armTalon.getClosedLoopError()); 
@@ -232,15 +242,18 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
         // java.lang.Math.sin needs radians
 
         // Equation demands a the complementary angle
-        double theta = Math.toRadians(90 - deg);
+        double theta = Math.toRadians(90 - (deg - 10));
 
-        double springTorsionRate = 0.062; // Should be accurate, may need to be updated
-        double torqueAtHorizontal = 5.51; // UPDATE BASED ON MEASURED VALUES
-        double springPreloadedAngle = Math.toRadians(5); // Should be accurate, may need to be updated
+        SmartDashboard.putNumber("ArmGComp-Angle", Math.toDegrees(theta));
+
+        double springTorsionRate = 0.062*10; // Should be accurate, may need to be updated
+        double torqueAtHorizontal = 3.0;// 5.51; // UPDATE BASED ON MEASURED VALUES
+        double springPreloadedAngle = Math.toRadians(-7); // Should be accurate, may need to be updated
+        // Spring doesn't generate torque until it travels 10 degrees so its negatively preloaded.
 
         double volts = torqueAtHorizontal * Math.sin(theta) - springTorsionRate * (theta - springPreloadedAngle); // 5.51 and 5 may need to be adjusted
         
-        double arbFF = volts / 12;
+        double arbFF = volts / armTalon.getBusVoltage();
 
         return arbFF;
     }
