@@ -116,6 +116,9 @@ public class ArmSubsystem extends ConditionalSubsystemBase {
             talonErrorCondition.setState(true);
         }
 
+        if (Config.robotId != 0) {
+            armTalon.setSelectedSensorPosition(0);
+        }
         currentPosition = (int) armTalon.getSelectedSensorPosition();
     }
 
