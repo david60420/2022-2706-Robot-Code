@@ -72,7 +72,7 @@ public class Robot extends TimedRobot {
         var scheduler = CommandScheduler.getInstance();
         scheduler.disable();
         scheduler.cancelAll();
-
+ 
         /*
          Log the message and close the log file.
          Not strictly necessary, but it's good practice to close files when you're done with it.
